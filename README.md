@@ -1,6 +1,6 @@
 # PolyTranslate
 
-A Chrome extension that adds inline translation to PolyAI Agent Studio, helping Agent Designers review and test multilingual agents without switching to external translation tools.
+A Chrome extension that adds inline translation to PolyAI Agent Studio, helping designers, engineers, executives, clients, and anyone else using Studio review and interact with multilingual agents without switching to external translation tools.
 
 ## Features
 

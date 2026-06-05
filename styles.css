@@ -202,13 +202,11 @@
   z-index: 2;
   right: 0.75rem;
   bottom: calc(0.65rem + 38px);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  pointer-events: none;
 }
 
 .pt-input-circle-btn {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -268,6 +266,9 @@
 
 /* Popup with language select + translate */
 .pt-input-popup {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
   display: flex;
   align-items: center;
   gap: 6px;
