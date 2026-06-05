@@ -433,6 +433,10 @@
 
   let pageObserverDebounce = null;
   const pageObserver = new MutationObserver(() => {
+    if (!chrome.runtime?.id) {
+      pageObserver.disconnect();
+      return;
+    }
     if (pageObserverDebounce) return;
     pageObserverDebounce = setTimeout(() => {
       pageObserverDebounce = null;
