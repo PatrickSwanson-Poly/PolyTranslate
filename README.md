@@ -1,4 +1,4 @@
-# PolyTranslate
+# <img src="icons/icon48.png" alt="" width="32" /> PolyTranslate
 
 A Chrome extension that adds inline translation to PolyAI Agent Studio, helping designers, engineers, executives, clients, and anyone else using Studio review and interact with multilingual agents without switching to external translation tools.
 
