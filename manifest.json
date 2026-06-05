@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "PolyTranslate",
+  "version": "1.0.0",
+  "author": "Patrick Swanson",
+  "description": "Translate transcripts and chat in PolyAI Agent Studio",
+  "permissions": ["activeTab", "storage", "tabs"],
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": ["https://*.poly.ai/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.poly.ai/*"],
+      "js": ["config.js", "translate.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["https://*.poly.ai/*"]
+    }
+  ]
+}

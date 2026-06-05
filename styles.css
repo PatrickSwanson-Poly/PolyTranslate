@@ -1,0 +1,327 @@
+/* PolyTranslate — minimal injection styles */
+
+.pt-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #161617;
+  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+  z-index: 1000;
+}
+
+.pt-toggle-btn:hover {
+  border-color: #D9EE50;
+  background: #fafff0;
+}
+
+.pt-toggle-btn.pt-active {
+  background: #D9EE50;
+  border-color: #D9EE50;
+  color: #161617;
+}
+
+.pt-toggle-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Language select dropdowns */
+.pt-lang-select {
+  padding: 5px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #161617;
+  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23161617' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px;
+}
+
+.pt-lang-select:hover,
+.pt-lang-select:focus {
+  border-color: #D9EE50;
+}
+
+.pt-lang-select-sm {
+  font-size: 10px;
+  padding: 3px 18px 3px 6px;
+}
+
+.pt-lang-arrow {
+  color: #161617;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}
+
+.pt-lang-arrow-sm {
+  color: #999;
+  font-size: 11px;
+  line-height: 1;
+  user-select: none;
+}
+
+
+/* Translation badge shown inline after translated text */
+.pt-translated::after {
+  content: var(--pt-badge, "EN");
+  font-size: 9px;
+  font-weight: 700;
+  background: #D9EE50;
+  color: #161617;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  margin-left: 6px;
+  vertical-align: middle;
+  display: inline;
+  pointer-events: none;
+}
+
+/* Original text tooltip on hover */
+.pt-has-original:hover .pt-original-tooltip {
+  display: block;
+}
+
+.pt-original-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #161617;
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  z-index: 10000;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+
+/* Sidebar menu item highlight */
+.pt-sidebar-item a[data-sidebar="menu-button"]:hover {
+  background: var(--tw-background-hover, rgba(255,255,255,0.08));
+}
+
+/* Popover toolbar anchored near sidebar bottom */
+.pt-toolbar-popover {
+  position: fixed;
+  bottom: 120px;
+  left: 68px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 2147483647;
+  transform-origin: bottom left;
+  transition: opacity 0.15s, transform 0.15s;
+  opacity: 0;
+  transform: scale(0.95) translateX(-4px);
+  pointer-events: none;
+}
+
+.pt-toolbar-popover-visible {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+  pointer-events: auto;
+}
+
+/* Arrow pointing left toward sidebar */
+.pt-toolbar-popover::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  bottom: 14px;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  transform: rotate(45deg);
+}
+
+/* Chat panel translate button */
+.pt-chat-translate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #161617;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.pt-chat-translate-btn:hover {
+  border-color: #D9EE50;
+  background: #fafff0;
+}
+
+.pt-chat-translate-btn.pt-active {
+  background: #D9EE50;
+  border-color: #D9EE50;
+}
+
+.pt-chat-translate-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Anchor for translate button + popup inside textarea wrapper */
+.pt-input-anchor {
+  position: absolute;
+  z-index: 2;
+  right: 0.75rem;
+  bottom: calc(0.65rem + 38px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pt-input-circle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #D9EE50;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pt-input-circle-btn img {
+  border-radius: 50%;
+}
+
+.pt-input-circle-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.pt-input-circle-dim {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Tooltip on hover */
+[data-pt-tooltip] {
+  position: relative;
+}
+
+[data-pt-tooltip]::after {
+  content: attr(data-pt-tooltip);
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #161617;
+  color: #fff;
+  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+[data-pt-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* Popup with language select + translate */
+.pt-input-popup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  opacity: 0;
+  transform: scale(0.9) translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  transform-origin: bottom right;
+  white-space: nowrap;
+}
+
+.pt-input-popup-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.pt-input-go-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #D9EE50;
+  color: #161617;
+  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pt-input-go-btn:hover {
+  background: #eafa82;
+}
+
+.pt-input-translate-btn:hover {
+  border-color: #D9EE50;
+  background: #fafff0;
+}
+
+.pt-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #D9EE50;
+  border-radius: 50%;
+  animation: pt-spin 0.6s linear infinite;
+}
+
+@keyframes pt-spin {
+  to { transform: rotate(360deg); }
+}
