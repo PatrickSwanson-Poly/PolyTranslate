@@ -119,9 +119,15 @@
   pointer-events: none;
 }
 
-/* Sidebar menu item highlight */
+/* Sidebar menu item — match native Studio hover: subtle grey shift, text brightens */
+.pt-sidebar-item a[data-sidebar="menu-button"] {
+  color: rgba(255,255,255,0.65);
+  transition: background 0.15s, color 0.15s;
+}
+
 .pt-sidebar-item a[data-sidebar="menu-button"]:hover {
-  background: var(--tw-background-hover, rgba(255,255,255,0.08));
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.95);
 }
 
 /* Popover toolbar anchored near sidebar bottom */

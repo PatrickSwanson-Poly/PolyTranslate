@@ -73,7 +73,7 @@
 
     const menuBtn = document.createElement("a");
     menuBtn.className =
-      "peer/menu-button flex w-full items-center gap-xs2 overflow-hidden rounded-xSmall px-xs3 py-xs2 text-left outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&_svg]:shrink-0 group-data-[collapsible=icon]:[&_svg]:size-[20px] group-data-[collapsible=icon]:size-[40px] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 text-body-regular [&_svg]:size-[20px] group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!px-xs3 group-data-[collapsible=icon]:!h-[36px] h-[36px]";
+      "peer/menu-button flex w-full items-center gap-xs2 overflow-hidden rounded-xSmall px-xs3 py-xs2 text-left outline-none ring-sidebar-ring transition-[width,height,padding] [&>span:last-child]:truncate [&_svg]:shrink-0 group-data-[collapsible=icon]:[&_svg]:size-[20px] group-data-[collapsible=icon]:size-[40px] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 text-body-regular [&_svg]:size-[20px] group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!px-xs3 group-data-[collapsible=icon]:!h-[36px] h-[36px]";
     menuBtn.setAttribute("data-sidebar", "menu-button");
     menuBtn.setAttribute("data-size", "medium");
     menuBtn.style.cursor = "pointer";
