@@ -60,6 +60,9 @@
   function createConversationToolbar() {
     if (document.querySelector(".pt-sidebar-item")) return;
 
+    // Clean up orphaned popovers left behind by SPA re-renders
+    document.querySelectorAll(".pt-toolbar-popover").forEach((el) => el.remove());
+
     const footerUl = document.querySelector('[data-sidebar="footer"] ul');
     if (!footerUl) return;
 
@@ -113,10 +116,17 @@
     arrow.textContent = "→";
 
     const tgtSelect = buildSelect(targetLang, false);
-    tgtSelect.addEventListener("change", (e) => {
+    tgtSelect.addEventListener("change", async (e) => {
       targetLang = e.target.value;
       saveSetting("pt_target", targetLang);
       updateBadgeContent();
+      if (conversationTranslateActive) {
+        restoreConversationTurns();
+        const btn = document.querySelector(".pt-toolbar-popover .pt-toggle-btn");
+        if (btn) btn.innerHTML = `<span class="pt-spinner"></span> Translating…`;
+        await translateConversationTurns();
+        if (btn) btn.innerHTML = `${TRANSLATE_ICON} Live`;
+      }
     });
 
     const btn = document.createElement("button");
@@ -249,9 +259,14 @@
       });
     });
 
-    // Live chat message bubbles
+    // Live chat message bubbles — avoid brittle styled-components hashes;
+    // walk up from the test-id anchor to find the first text-bearing child
     document.querySelectorAll('[data-test-id="chatMessages"] [data-test-id="chat-message-text"]').forEach((bubble) => {
-      const textEl = bubble.querySelector("div.gzGCB") || bubble.querySelector(".sc-erUUZj");
+      const textEl =
+        bubble.querySelector("[class*='MessageText']") ||
+        bubble.querySelector("div.gzGCB") ||
+        bubble.querySelector(".sc-erUUZj") ||
+        bubble.querySelector("div");
       if (textEl && textEl.textContent.trim().length > 0 && !spans.includes(textEl)) {
         spans.push(textEl);
       }
@@ -296,6 +311,9 @@
   function createInputTranslateButton() {
     const textarea = document.querySelector("#chat-panel textarea");
     if (!textarea || textarea.dataset.ptBound) return;
+
+    // Clean up orphaned anchors from previous textarea instances
+    document.querySelectorAll(".pt-input-anchor").forEach((el) => el.remove());
 
     textarea.dataset.ptBound = "true";
 
@@ -413,10 +431,19 @@
     createInputTranslateButton();
   }
 
+  let pageObserverDebounce = null;
   const pageObserver = new MutationObserver(() => {
-    createConversationToolbar();
+    if (pageObserverDebounce) return;
+    pageObserverDebounce = setTimeout(() => {
+      pageObserverDebounce = null;
+      createConversationToolbar();
+      createInputTranslateButton();
 
-    createInputTranslateButton();
+      // Re-attach panel watcher if live translation is on but targets were replaced
+      if (conversationTranslateActive) {
+        watchPanels();
+      }
+    }, 200);
   });
 
   if (document.readyState === "loading") {
