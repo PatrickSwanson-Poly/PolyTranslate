@@ -5,10 +5,10 @@ A Chrome extension that adds inline translation to PolyAI Agent Studio, helping 
 ## Features
 
 ### Conversation Transcript Translation
-Translate completed conversation transcripts inline. Click the **PolyTranslate** button in the sidebar, select source/target languages, and hit **Translate**. Only messages that actually changed get a language badge. Hover any translated message to see the original. Click again to restore.
+Translate completed conversation transcripts inline. Click the **PolyTranslate** button in the sidebar, select source/target languages, and hit **Translate**. Only messages that actually changed get a language badge. Toggle translation off to restore the originals.
 
 ### Live Chat Translation
-Toggle **Live** mode from the sidebar to auto-translate incoming agent and caller messages in real time during a chat session. New messages are translated within 300ms of appearing. Works alongside the conversation review panel.
+Toggle **Live** mode from the sidebar to auto-translate incoming agent and caller messages in real time during a chat session. Works alongside the conversation review panel.
 
 ### Input Auto-Translator
 A green translate button sits above the send arrow in the chat textarea. Click it to select a target language and translate your typed input before sending. Useful for typing in English and sending in Spanish (or any other language).
@@ -16,9 +16,9 @@ A green translate button sits above the send arrow in the chat textarea. Click i
 **Keyboard shortcut:** `Cmd+Shift+Y` (Mac) / `Ctrl+Shift+Y` (Windows/Linux)
 
 ### Language Support
-25 languages available with auto-detect as the default source. Language selections persist across sessions via Chrome storage.
+26 languages available with auto-detect as the default source. Language selections persist across sessions via Chrome storage.
 
-Arabic, Chinese, Danish, Dutch, English, French, German, Greek, Hebrew, Hindi, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Spanish, Swedish, Thai, Turkish, Ukrainian, Vietnamese
+Arabic, Chinese, Danish, Dutch, English, French, German, Greek, Hebrew, Hindi, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Serbian, Spanish, Swedish, Thai, Turkish, Ukrainian, Vietnamese
 
 ### Adaptive Extension Icon
 The toolbar icon shows the full-color PolyTranslate logo on `*.poly.ai` pages and switches to a greyed-out version on all other sites.

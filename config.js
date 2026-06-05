@@ -25,6 +25,7 @@ const PT_LANGUAGES = [
   { code: "pt", name: "Portuguese" },
   { code: "ro", name: "Romanian" },
   { code: "ru", name: "Russian" },
+  { code: "sr", name: "Serbian" },
   { code: "es", name: "Spanish" },
   { code: "sv", name: "Swedish" },
   { code: "th", name: "Thai" },

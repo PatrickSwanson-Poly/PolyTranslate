@@ -128,7 +128,6 @@
 .pt-toolbar-popover {
   position: fixed;
   bottom: 120px;
-  left: 68px;
   display: flex;
   align-items: center;
   gap: 8px;

@@ -89,6 +89,10 @@
       toolbarVisible = !toolbarVisible;
       const popover = document.querySelector(".pt-toolbar-popover");
       if (popover) {
+        if (toolbarVisible) {
+          const rect = li.getBoundingClientRect();
+          popover.style.left = rect.right + 8 + "px";
+        }
         popover.classList.toggle("pt-toolbar-popover-visible", toolbarVisible);
       }
     });
