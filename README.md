@@ -38,6 +38,14 @@ The toolbar icon shows the full-color PolyTranslate logo on `*.poly.ai` pages an
 - **Non-destructive:** All translations are reversible. Original text is preserved in memory and restored when translation is toggled off
 - **Click isolation:** All injected UI stops event propagation to prevent interfering with Agent Studio's panel open/close behavior
 
+## Updating
+
+After pulling new changes:
+
+1. Go to `chrome://extensions`
+2. Click the reload icon on the PolyTranslate card
+3. **Refresh any open Agent Studio tabs** -- this is required, otherwise you'll see "Extension context invalidated" errors in the console
+
 ## File Structure
 
 ```
