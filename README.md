@@ -178,4 +178,5 @@ PolyTranslate/
 ## Authors
 
 **Patrick Swanson** — PolyAI
+
 **Faith Ruetas** — PolyAI
