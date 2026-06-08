@@ -1,12 +1,11 @@
 const POLYTRANSLATE_CONFIG = {
-  DEFAULT_SOURCE_LANG: "auto",
-  DEFAULT_TARGET_LANG: "en",
-  DEFAULT_INPUT_SOURCE_LANG: "auto",
-  DEFAULT_INPUT_TARGET_LANG: "es",
+  DEFAULT_SOURCE_LANG: "en",
+  DEFAULT_TARGET_LANG: "es",
+  DEFAULT_INPUT_SOURCE_LANG: "es",
+  DEFAULT_INPUT_TARGET_LANG: "en",
 };
 
 const PT_LANGUAGES = [
-  { code: "auto", name: "Auto-detect" },
   { code: "ar", name: "Arabic" },
   { code: "zh", name: "Chinese" },
   { code: "da", name: "Danish" },
@@ -29,7 +28,6 @@ const PT_LANGUAGES = [
   { code: "es", name: "Spanish" },
   { code: "sv", name: "Swedish" },
   { code: "th", name: "Thai" },
-  { code: "tr", name: "Turkish" },
   { code: "uk", name: "Ukrainian" },
   { code: "vi", name: "Vietnamese" },
 ];

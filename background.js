@@ -28,3 +28,31 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     updateIcon(tabId, tab.url);
   }
 });
+
+// ── Offscreen document for Bergamot WASM translation ──
+
+async function ensureOffscreen() {
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ["OFFSCREEN_DOCUMENT"],
+  });
+  if (contexts.length > 0) return;
+
+  await chrome.offscreen.createDocument({
+    url: "offscreen.html",
+    reasons: ["WORKERS"],
+    justification: "Run Bergamot WASM translation engine",
+  });
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type !== "translate" || !sender.tab) return;
+
+  ensureOffscreen()
+    .then(() =>
+      chrome.runtime.sendMessage({ ...message, type: "bergamot-translate" })
+    )
+    .then(sendResponse)
+    .catch((err) => sendResponse({ error: err.message }));
+
+  return true;
+});
