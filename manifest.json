@@ -1,15 +1,17 @@
 {
   "manifest_version": 3,
   "name": "PolyTranslate",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "Patrick Swanson",
-  "description": "Translate transcripts and chat in PolyAI Agent Studio",
-  "permissions": ["activeTab", "storage", "tabs"],
+  "description": "Privacy-first offline translation for PolyAI Agent Studio — powered by Bergamot WASM",
+  "permissions": ["activeTab", "storage", "tabs", "offscreen"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
   "action": {},
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["https://*.poly.ai/*"],
   "content_scripts": [
     {
       "matches": ["https://*.poly.ai/*"],
@@ -25,7 +27,13 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
+      "resources": [
+        "icons/*",
+        "bergamot-translator-worker.js",
+        "bergamot-translator-worker.wasm",
+        "models/*",
+        "installed-languages.json"
+      ],
       "matches": ["https://*.poly.ai/*"]
     }
   ]

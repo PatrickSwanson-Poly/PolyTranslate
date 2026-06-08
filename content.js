@@ -14,15 +14,18 @@
   let targetLang = POLYTRANSLATE_CONFIG.DEFAULT_TARGET_LANG;
   let inputSourceLang = POLYTRANSLATE_CONFIG.DEFAULT_INPUT_SOURCE_LANG;
   let inputTargetLang = POLYTRANSLATE_CONFIG.DEFAULT_INPUT_TARGET_LANG;
+  let installedLangs = null;
 
   function loadSettings() {
     return new Promise((resolve) => {
       chrome.storage.local.get(
         ["pt_source", "pt_target", "pt_input_source", "pt_input_target"],
         (result) => {
-          if (result.pt_source) sourceLang = result.pt_source;
+          if (result.pt_source && result.pt_source !== "auto")
+            sourceLang = result.pt_source;
           if (result.pt_target) targetLang = result.pt_target;
-          if (result.pt_input_source) inputSourceLang = result.pt_input_source;
+          if (result.pt_input_source && result.pt_input_source !== "auto")
+            inputSourceLang = result.pt_input_source;
           if (result.pt_input_target) inputTargetLang = result.pt_input_target;
           resolve();
         }
@@ -39,11 +42,15 @@
     return lang ? lang.name : code.toUpperCase();
   }
 
-  function buildSelect(selectedCode, includeAuto) {
+  function buildSelect(selectedCode) {
     const select = document.createElement("select");
     select.className = "pt-lang-select";
-    PT_LANGUAGES.forEach((lang) => {
-      if (!includeAuto && lang.code === "auto") return;
+    const available = installedLangs
+      ? PT_LANGUAGES.filter(
+          (l) => l.code === "en" || installedLangs.includes(l.code)
+        )
+      : PT_LANGUAGES;
+    available.forEach((lang) => {
       const opt = document.createElement("option");
       opt.value = lang.code;
       opt.textContent = lang.name;
@@ -109,7 +116,7 @@
     popover.addEventListener("mousedown", (e) => e.stopPropagation());
     popover.addEventListener("click", (e) => e.stopPropagation());
 
-    const srcSelect = buildSelect(sourceLang, true);
+    const srcSelect = buildSelect(sourceLang);
     srcSelect.addEventListener("change", (e) => {
       sourceLang = e.target.value;
       saveSetting("pt_source", sourceLang);
@@ -119,7 +126,7 @@
     arrow.className = "pt-lang-arrow";
     arrow.textContent = "→";
 
-    const tgtSelect = buildSelect(targetLang, false);
+    const tgtSelect = buildSelect(targetLang);
     tgtSelect.addEventListener("change", async (e) => {
       targetLang = e.target.value;
       saveSetting("pt_target", targetLang);
@@ -342,7 +349,18 @@
     const popup = document.createElement("div");
     popup.className = "pt-input-popup";
 
-    const tgtSelect = buildSelect(inputTargetLang, false);
+    const srcSelect = buildSelect(inputSourceLang);
+    srcSelect.className = "pt-lang-select pt-lang-select-sm";
+    srcSelect.addEventListener("change", (e) => {
+      inputSourceLang = e.target.value;
+      saveSetting("pt_input_source", inputSourceLang);
+    });
+
+    const inputArrow = document.createElement("span");
+    inputArrow.className = "pt-lang-arrow-sm";
+    inputArrow.textContent = "→";
+
+    const tgtSelect = buildSelect(inputTargetLang);
     tgtSelect.className = "pt-lang-select pt-lang-select-sm";
     tgtSelect.addEventListener("change", (e) => {
       inputTargetLang = e.target.value;
@@ -357,6 +375,8 @@
       translateInput(textarea);
     });
 
+    popup.appendChild(srcSelect);
+    popup.appendChild(inputArrow);
     popup.appendChild(tgtSelect);
     popup.appendChild(goBtn);
 
@@ -368,6 +388,16 @@
 
     circleBtn.addEventListener("click", () => {
       popup.classList.toggle("pt-input-popup-visible");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        popup.classList.contains("pt-input-popup-visible") &&
+        !popup.contains(e.target) &&
+        !circleBtn.contains(e.target)
+      ) {
+        popup.classList.remove("pt-input-popup-visible");
+      }
     });
 
     anchor.appendChild(popup);
@@ -429,9 +459,17 @@
 
   async function init() {
     await loadSettings();
+
+    try {
+      const url = chrome.runtime.getURL("installed-languages.json");
+      const resp = await fetch(url);
+      if (resp.ok) installedLangs = await resp.json();
+    } catch {
+      // File missing — show all languages
+    }
+
     updateBadgeContent();
     createConversationToolbar();
-
     createInputTranslateButton();
   }
 
