@@ -200,7 +200,7 @@
       try {
         const translated = await translateBatch(texts, sourceLang, targetLang);
         spans.forEach((span, i) => {
-          if (translated[i].trim() === texts[i].trim()) return;
+          if (translated[i].trim().toLowerCase() === texts[i].trim().toLowerCase()) return;
           span.textContent = translated[i];
           span.classList.add("pt-translated");
         });
@@ -296,7 +296,7 @@
     try {
       const translated = await translateBatch(texts, sourceLang, targetLang);
       spans.forEach((span, i) => {
-        if (translated[i].trim() === texts[i].trim()) return;
+        if (translated[i].trim().toLowerCase() === texts[i].trim().toLowerCase()) return;
         span.textContent = translated[i];
         span.classList.add("pt-translated");
       });
