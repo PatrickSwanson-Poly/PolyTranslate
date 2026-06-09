@@ -168,6 +168,10 @@ PolyTranslate/
     icon16_bw.png / icon48_bw.png / icon128_bw.png  # Greyscale icons
 ```
 
+## Troubleshooting
+
+If the PolyTranslate icons turn **red**, the translation engine has encountered an error — usually because the extension's background process was suspended by Chrome. **Refresh the Agent Studio page** to restore it.
+
 ## Limitations
 
 - **English pivot:** Non-English language pairs translate via English, which can reduce quality for idiomatic or nuanced text

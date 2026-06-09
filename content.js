@@ -7,6 +7,14 @@
 
   let conversationTranslateActive = false;
   const originalTexts = new WeakMap();
+  const LOGO_OK = chrome.runtime.getURL("icons/icon48.png");
+  const LOGO_ERR = chrome.runtime.getURL("icons/icon48_err.png");
+
+  function setErrorState(on) {
+    document.querySelectorAll(".pt-sidebar-item img, .pt-input-circle-btn img").forEach((img) => {
+      img.src = on ? LOGO_ERR : LOGO_OK;
+    });
+  }
 
   // ── Language settings (persisted to chrome.storage) ──
 
@@ -87,7 +95,8 @@
     const logoUrl = chrome.runtime.getURL("icons/icon48.png");
     menuBtn.innerHTML = `
       <img src="${logoUrl}" width="20" height="20" style="border-radius:4px;flex-shrink:0;" />
-      <span class="truncate group-data-[collapsible=icon]:hidden">PolyTranslate</span>`;
+      <span class="truncate group-data-[collapsible=icon]:hidden">PolyTranslate</span>
+      <span class="inline-flex items-center rounded-full border px-[6px] py-xxs1 text-[10px] font-semibold uppercase leading-tight border-transparent bg-base-brand-50 text-base-brand-100 shrink-0 group-data-[collapsible=icon]:hidden">Ext</span>`;
 
     menuBtn.addEventListener("mousedown", (e) => e.stopPropagation());
     menuBtn.addEventListener("click", (e) => {
@@ -153,17 +162,6 @@
 
     document.body.appendChild(popover);
 
-    // Close popover when clicking outside
-    document.addEventListener("click", (e) => {
-      if (
-        toolbarVisible &&
-        !popover.contains(e.target) &&
-        !li.contains(e.target)
-      ) {
-        toolbarVisible = false;
-        popover.classList.remove("pt-toolbar-popover-visible");
-      }
-    });
   }
 
   function updateBadgeContent() {
@@ -204,8 +202,10 @@
           span.textContent = translated[i];
           span.classList.add("pt-translated");
         });
+        setErrorState(false);
       } catch (err) {
         console.error("[PolyTranslate] Live translate failed:", err);
+        setErrorState(true);
       }
     }, 300);
   }
@@ -300,9 +300,10 @@
         span.textContent = translated[i];
         span.classList.add("pt-translated");
       });
+      setErrorState(false);
     } catch (err) {
       console.error("[PolyTranslate] Conversation translation failed:", err);
-      alert("Translation failed — see console for details.");
+      setErrorState(true);
     }
   }
 
@@ -448,8 +449,10 @@
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
       textarea.dispatchEvent(new Event("change", { bubbles: true }));
       textarea.focus();
+      setErrorState(false);
     } catch (err) {
       console.error("[PolyTranslate] Input translation failed:", err);
+      setErrorState(true);
     } finally {
       resetInputBtn();
     }
