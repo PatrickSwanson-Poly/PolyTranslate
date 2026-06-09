@@ -31,17 +31,26 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // ── Offscreen document for Bergamot WASM translation ──
 
-async function ensureOffscreen() {
-  const contexts = await chrome.runtime.getContexts({
-    contextTypes: ["OFFSCREEN_DOCUMENT"],
-  });
-  if (contexts.length > 0) return;
+let offscreenPromise = null;
 
-  await chrome.offscreen.createDocument({
-    url: "offscreen.html",
-    reasons: ["WORKERS"],
-    justification: "Run Bergamot WASM translation engine",
-  });
+async function ensureOffscreen() {
+  if (offscreenPromise) return offscreenPromise;
+
+  offscreenPromise = (async () => {
+    const contexts = await chrome.runtime.getContexts({
+      contextTypes: ["OFFSCREEN_DOCUMENT"],
+    });
+    if (contexts.length > 0) return;
+
+    await chrome.offscreen.createDocument({
+      url: "offscreen.html",
+      reasons: ["WORKERS"],
+      justification: "Run Bergamot WASM translation engine",
+    });
+  })();
+
+  await offscreenPromise;
+  offscreenPromise = null;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
