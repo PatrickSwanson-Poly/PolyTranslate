@@ -32,7 +32,7 @@ PolyTranslate is designed so that **no translation data ever leaves your machine
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/pswanson/PolyTranslate.git
+git clone https://github.com/PatrickSwanson-Poly/PolyTranslate.git
 cd PolyTranslate
 ```
 
