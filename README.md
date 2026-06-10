@@ -49,12 +49,12 @@ You'll see an interactive picker — enter the numbers of the languages you want
 ```
   Available languages:
 
-     1) Arabic        2) Chinese       3) Danish        4) Dutch
-     5) French        6) German        7) Greek         8) Hebrew
-     9) Hindi        10) Italian      11) Japanese     12) Korean
-    13) Norwegian    14) Polish       15) Portuguese   16) Romanian
-    17) Russian      18) Serbian      19) Spanish      20) Swedish
-    21) Thai         22) Ukrainian    23) Vietnamese
+    1) Arabic                7) Greek                13) Norwegian            19) Spanish       
+    2) Chinese               8) Hebrew               14) Polish               20) Swedish       
+    3) Danish                9) Hindi                15) Portuguese           21) Thai          
+    4) Dutch                10) Italian              16) Romanian             22) Ukrainian     
+    5) French               11) Japanese             17) Russian              23) Vietnamese    
+    6) German               12) Korean               18) Serbian       
 
   Enter numbers separated by spaces, all for everything, or q to cancel:
   > 5 6 19
