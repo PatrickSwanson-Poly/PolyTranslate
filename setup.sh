@@ -8,25 +8,35 @@ CDN="https://firefox-settings-attachments.cdn.mozilla.net"
 
 # ── Language definitions ──
 
-declare -A LANG_NAMES=(
-  [ar]="Arabic"       [zh]="Chinese"     [da]="Danish"      [nl]="Dutch"
-  [en]="English"      [fr]="French"      [de]="German"      [el]="Greek"
-  [he]="Hebrew"       [hi]="Hindi"       [it]="Italian"     [ja]="Japanese"
-  [ko]="Korean"       [no]="Norwegian"   [pl]="Polish"      [pt]="Portuguese"
-  [ro]="Romanian"     [ru]="Russian"     [sr]="Serbian"     [es]="Spanish"
-  [sv]="Swedish"      [th]="Thai"        [uk]="Ukrainian"
-  [vi]="Vietnamese"
-)
-
-declare -A BERG_MAP=(
-  [ar]="ar"  [zh]="zh-Hans"  [da]="da"  [nl]="nl"  [en]="en"
-  [fr]="fr"  [de]="de"       [el]="el"  [he]="he"  [hi]="hi"
-  [it]="it"  [ja]="ja"       [ko]="ko"  [no]="nb"  [pl]="pl"
-  [pt]="pt"  [ro]="ro"       [ru]="ru"  [sr]="sr"  [es]="es"
-  [sv]="sv"  [th]="th"       [uk]="uk"  [vi]="vi"
-)
-
 NON_EN_LANGS=(ar zh da nl fr de el he hi it ja ko no pl pt ro ru sr es sv th uk vi)
+
+lang_name() {
+  case "$1" in
+    ar) echo "Arabic"     ;; zh) echo "Chinese"    ;; da) echo "Danish"     ;;
+    nl) echo "Dutch"      ;; en) echo "English"    ;; fr) echo "French"     ;;
+    de) echo "German"     ;; el) echo "Greek"      ;; he) echo "Hebrew"     ;;
+    hi) echo "Hindi"      ;; it) echo "Italian"    ;; ja) echo "Japanese"   ;;
+    ko) echo "Korean"     ;; no) echo "Norwegian"  ;; pl) echo "Polish"     ;;
+    pt) echo "Portuguese" ;; ro) echo "Romanian"   ;; ru) echo "Russian"    ;;
+    sr) echo "Serbian"    ;; es) echo "Spanish"    ;; sv) echo "Swedish"    ;;
+    th) echo "Thai"       ;; uk) echo "Ukrainian"  ;; vi) echo "Vietnamese" ;;
+    *)  echo "$1" ;;
+  esac
+}
+
+berg_code() {
+  case "$1" in
+    ar) echo "ar"      ;; zh) echo "zh-Hans" ;; da) echo "da" ;;
+    nl) echo "nl"      ;; en) echo "en"      ;; fr) echo "fr" ;;
+    de) echo "de"      ;; el) echo "el"      ;; he) echo "he" ;;
+    hi) echo "hi"      ;; it) echo "it"      ;; ja) echo "ja" ;;
+    ko) echo "ko"      ;; no) echo "nb"      ;; pl) echo "pl" ;;
+    pt) echo "pt"      ;; ro) echo "ro"      ;; ru) echo "ru" ;;
+    sr) echo "sr"      ;; es) echo "es"      ;; sv) echo "sv" ;;
+    th) echo "th"      ;; uk) echo "uk"      ;; vi) echo "vi" ;;
+    *)  echo "$1" ;;
+  esac
+}
 
 # ── Helpers ──
 
@@ -78,14 +88,19 @@ write_installed_languages() {
       langs+=("\"$lang\"")
     fi
   done
-  local json
-  json=$(IFS=,; echo "[${langs[*]+"${langs[*]}"}]")
+  if [[ ${#langs[@]} -eq 0 ]]; then
+    json="[]"
+  else
+    json=$(IFS=,; echo "[${langs[*]}]")
+  fi
   echo "$json" > "$SCRIPT_DIR/installed-languages.json"
 }
 
 download_pair() {
   local from="$1" to="$2" pair_key="${1}_${2}"
-  local berg_from="${BERG_MAP[$from]}" berg_to="${BERG_MAP[$to]}"
+  local berg_from berg_to
+  berg_from=$(berg_code "$from")
+  berg_to=$(berg_code "$to")
   local remote_key="${berg_from}_${berg_to}"
   local pair_dir="$MODELS_DIR/$pair_key"
 
@@ -147,7 +162,8 @@ for name, (r, ver) in best.items():
 
 download_language() {
   local lang="$1"
-  local name="${LANG_NAMES[$lang]}"
+  local name
+  name=$(lang_name "$lang")
 
   echo ""
   echo "  $(bold "$name") ($lang)"
@@ -175,7 +191,8 @@ print_status() {
   else
     echo "  Installed languages:"
     for lang in $existing; do
-      local name="${LANG_NAMES[$lang]}"
+      local name
+      name=$(lang_name "$lang")
       local st
       st=$(lang_status "$lang")
       if [[ "$st" == "ok" ]]; then
@@ -199,7 +216,8 @@ pick_languages() {
   local i=1
   local available=()
   for lang in "${NON_EN_LANGS[@]}"; do
-    local name="${LANG_NAMES[$lang]}"
+    local name
+    name=$(lang_name "$lang")
     local marker="  "
     if [[ -d "$MODELS_DIR/${lang}_en" ]] && ls "$MODELS_DIR/${lang}_en"/*.bin &>/dev/null; then
       marker="$(green "✓")"
@@ -308,7 +326,7 @@ cmd_add() {
     st=$(lang_status "$lang")
     if [[ "$st" == "ok" ]]; then
       echo ""
-      echo "  $(dim "${LANG_NAMES[$lang]} already installed, skipping (use update to refresh)")"
+      echo "  $(dim "$(lang_name "$lang") already installed, skipping (use update to refresh)")"
       skipped=$((skipped + 1))
     elif download_language "$lang"; then
       success=$((success + 1))
@@ -391,7 +409,8 @@ cmd_remove() {
   local i=1
   local removable=()
   for lang in $existing; do
-    local name="${LANG_NAMES[$lang]}"
+    local name
+    name=$(lang_name "$lang")
     printf "    %2d) %-12s\n" "$i" "$name"
     removable+=("$lang")
     i=$((i + 1))
@@ -425,7 +444,8 @@ cmd_remove() {
   fi
 
   for lang in "${to_remove[@]}"; do
-    local name="${LANG_NAMES[$lang]}"
+    local name
+    name=$(lang_name "$lang")
     rm -rf "$MODELS_DIR/${lang}_en" "$MODELS_DIR/en_${lang}"
     echo "  Removed $(bold "$name")"
   done
