@@ -177,10 +177,10 @@ function Download-Language($lang) {
     Write-Host '  ' -NoNewline; Write-Bold $name; Write-Host " ($lang)"
 
     $ok = $true
-    Write-Host "  down-arrow ${lang} -> en"
+    Write-Host "  $([char]0x2193) ${lang} -> en"
     if (-not (Download-Pair $lang 'en')) { $ok = $false }
 
-    Write-Host "  down-arrow en -> ${lang}"
+    Write-Host "  $([char]0x2193) en -> ${lang}"
     if (-not (Download-Pair 'en' $lang)) { $ok = $false }
 
     return $ok
@@ -214,9 +214,9 @@ function Show-Status {
             if ($st -eq 'ok') {
                 $toSize   = Get-DirSize (Join-Path $ModelsDir "${lang}_en")
                 $fromSize = Get-DirSize (Join-Path $ModelsDir "en_${lang}")
-                Write-Host '    ' -NoNewline; Write-Green 'check' ; Write-Host (' {0,-12} <-> English  ({1} + {2})' -f $name, $toSize, $fromSize)
+                Write-Host '    ' -NoNewline; Write-Green "$([char]0x2713)"; Write-Host (' {0,-12} {1} English  ({2} + {3})' -f $name, [char]0x2194, $toSize, $fromSize)
             } else {
-                Write-Host '    ' -NoNewline; Write-Yellow '!'; Write-Host (' {0,-12} <-> English  ' -f $name) -NoNewline
+                Write-Host '    ' -NoNewline; Write-Yellow '!'; Write-Host (' {0,-12} {1} English  ' -f $name, [char]0x2194) -NoNewline
                 Write-Yellow "(incomplete -- run $Self add to repair)"; Write-Host ''
             }
         }
@@ -314,7 +314,7 @@ function Create-PolytLink {
         $cmdContent | Set-Content -Path $cmdPath -Encoding ASCII
         Write-Host '  ' -NoNewline; Write-Green "$([char]0x2713)"; Write-Host ' Installed! You can now use ' -NoNewline; Write-Bold 'polyt'; Write-Host ' from anywhere.'
     } catch {
-        Write-Host '  ' -NoNewline; Write-Red 'X'; Write-Host " Could not create $cmdPath."
+        Write-Host '  ' -NoNewline; Write-Red "$([char]0x2717)"; Write-Host " Could not create $cmdPath."
         Write-Host "      Try running as Administrator, or create it manually."
     }
 }
@@ -369,7 +369,7 @@ function cmd_init {
     }
 
     Write-Host ''
-    Write-Host '  --------------------------------'
+    Write-Host '  ────────────────────────────────'
     Write-InstalledLanguages
     Write-Host '  ' -NoNewline; Write-Green 'Done!'; Write-Host " $success languages installed. $fail failed."
     Write-Host ''
@@ -424,7 +424,7 @@ function cmd_add {
     }
 
     Write-Host ''
-    Write-Host '  --------------------------------'
+    Write-Host '  ────────────────────────────────'
     Write-InstalledLanguages
     Write-Host '  ' -NoNewline; Write-Green 'Done!'; Write-Host " $success added, $skipped already installed, $fail failed."
     Write-Host '  Reload the extension in chrome://extensions.'
@@ -467,7 +467,7 @@ function cmd_update {
     }
 
     Write-Host ''
-    Write-Host '  --------------------------------'
+    Write-Host '  ────────────────────────────────'
     Write-InstalledLanguages
     Write-Host '  ' -NoNewline; Write-Green 'Done!'; Write-Host " $success languages updated. $fail failed."
     Write-Host '  Reload the extension in chrome://extensions.'
