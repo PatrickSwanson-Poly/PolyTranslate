@@ -40,8 +40,14 @@ cd PolyTranslate
 
 Run the setup script to choose which languages you need. Each language pair is ~20-50 MB.
 
+**macOS / Linux:**
 ```bash
 ./setup.sh init
+```
+
+**Windows (PowerShell):**
+```powershell
+.\setup.ps1 init
 ```
 
 You'll see an interactive picker — enter the numbers of the languages you want, separated by spaces:
@@ -64,11 +70,17 @@ This would install French, German, and Spanish. Type `all` to install every lang
 
 The setup script will offer to install the `polyt` shortcut (recommended) at the end of init. If you skip it, you can always run it later:
 
+**macOS / Linux:**
 ```bash
 ./setup.sh link
 ```
 
-This creates a symlink at `/usr/local/bin/polyt` so you can run `polyt` from anywhere. Without it, use `./setup.sh` from the PolyTranslate folder.
+**Windows (PowerShell):**
+```powershell
+.\setup.ps1 link
+```
+
+On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it creates a `polyt.cmd` wrapper. Either way, you can then run `polyt` from anywhere. Without it, use `./setup.sh` or `.\setup.ps1` from the PolyTranslate folder.
 
 ### 3. Load the extension
 
@@ -79,7 +91,7 @@ This creates a symlink at `/usr/local/bin/polyt` so you can run `polyt` from any
 
 ## Managing Languages
 
-Use the `polyt` CLI (or `./setup.sh`) to manage installed translation models:
+Use the `polyt` CLI (or `./setup.sh` on macOS/Linux, `.\setup.ps1` on Windows) to manage installed translation models:
 
 | Command | Description |
 |---------|-------------|
@@ -155,7 +167,8 @@ PolyTranslate/
   offscreen.js                   # Bergamot WASM engine + model loading
   model-registry.js              # Language pair → model file URL mapping
   styles.css                     # Injected styles for all UI components
-  setup.sh                       # CLI for downloading/managing language models
+  setup.sh                       # CLI for downloading/managing language models (macOS/Linux)
+  setup.ps1                      # CLI for downloading/managing language models (Windows)
   installed-languages.json       # Auto-generated list of installed languages
   bergamot-translator-worker.js  # Bergamot Emscripten glue code
   bergamot-translator-worker.wasm # Bergamot WASM binary (~5 MB)
