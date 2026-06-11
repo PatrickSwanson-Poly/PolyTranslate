@@ -5,13 +5,21 @@
 
   const TRANSLATE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>`;
 
+  const LANG_ABBR = {
+    es: "ES", en: "EN", zh: "ZH", ja: "JA", ko: "KO", pt: "PT",
+    ar: "AR", fr: "FR", de: "DE", it: "IT", nl: "NL", ru: "RU",
+    pl: "PL", sv: "SV", da: "DA", no: "NO", fi: "FI", he: "HE",
+    hi: "HI", th: "TH", vi: "VI", uk: "UK", ro: "RO", el: "EL",
+    sr: "SR",
+  };
+
   let conversationTranslateActive = false;
   const originalTexts = new WeakMap();
   const LOGO_OK = chrome.runtime.getURL("icons/icon48.png");
   const LOGO_ERR = chrome.runtime.getURL("icons/icon48_err.png");
 
   function setErrorState(on) {
-    document.querySelectorAll(".pt-sidebar-item img, .pt-input-circle-btn img").forEach((img) => {
+    document.querySelectorAll(".pt-translate-toggle img, .pt-input-circle-btn img").forEach((img) => {
       img.src = on ? LOGO_ERR : LOGO_OK;
     });
   }
@@ -45,9 +53,12 @@
     chrome.storage.local.set({ [key]: value });
   }
 
-  function langName(code) {
-    const lang = PT_LANGUAGES.find((l) => l.code === code);
-    return lang ? lang.name : code.toUpperCase();
+  function langAbbr(code) {
+    return LANG_ABBR[code] || code.toUpperCase();
+  }
+
+  function langPairLabel() {
+    return `${langAbbr(sourceLang)} → ${langAbbr(targetLang)}`;
   }
 
   function buildSelect(selectedCode) {
@@ -68,67 +79,350 @@
     return select;
   }
 
-  // ── Feature 1: Conversation page translator ──
+  function updateLangLabel() {
+    document.querySelectorAll(".pt-translate-lang-label").forEach((label) => {
+      label.textContent = langPairLabel();
+    });
+  }
 
-  let toolbarVisible = false;
+  function setTranslateSplitActive(on) {
+    document.querySelectorAll(".pt-translate-split").forEach((split) => {
+      split.classList.toggle("pt-split-active", on);
+    });
+  }
 
-  function createConversationToolbar() {
-    if (document.querySelector(".pt-sidebar-item")) return;
+  function setTranslateToggleIdle() {
+    setTranslateSplitActive(false);
+    document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
+      btn.classList.remove("pt-active");
+      btn.innerHTML = TRANSLATE_ICON;
+      btn.setAttribute("aria-label", "Translate transcript");
+    });
+  }
 
-    // Clean up orphaned popovers left behind by SPA re-renders
-    document.querySelectorAll(".pt-toolbar-popover").forEach((el) => el.remove());
+  function setTranslateToggleLoading() {
+    document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
+      btn.innerHTML = `<span class="pt-spinner"></span>`;
+    });
+  }
 
-    const footerUl = document.querySelector('[data-sidebar="footer"] ul');
-    if (!footerUl) return;
+  function setTranslateToggleActive() {
+    setTranslateSplitActive(true);
+    document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
+      btn.classList.add("pt-active");
+      btn.innerHTML = `${TRANSLATE_ICON}<span class="pt-translate-state-label">Translated</span>`;
+      btn.setAttribute("aria-label", "Translation active");
+    });
+  }
 
-    // Sidebar menu item
-    const li = document.createElement("li");
-    li.className = "pt-sidebar-item group/menu-item relative";
-    li.setAttribute("data-sidebar", "menu-item");
+  function updateBadgeContent() {
+    const badge = langAbbr(targetLang);
+    document.documentElement.style.setProperty("--pt-badge", `"${badge}"`);
+  }
 
-    const menuBtn = document.createElement("a");
-    menuBtn.className =
-      "peer/menu-button flex w-full items-center gap-xs2 overflow-hidden rounded-xSmall px-xs3 py-xs2 text-left outline-none ring-sidebar-ring transition-[width,height,padding] [&>span:last-child]:truncate [&_svg]:shrink-0 group-data-[collapsible=icon]:[&_svg]:size-[20px] group-data-[collapsible=icon]:size-[40px] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0 text-body-regular [&_svg]:size-[20px] group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!px-xs3 group-data-[collapsible=icon]:!h-[36px] h-[36px]";
-    menuBtn.setAttribute("data-sidebar", "menu-button");
-    menuBtn.setAttribute("data-size", "medium");
-    menuBtn.style.cursor = "pointer";
-    const logoUrl = chrome.runtime.getURL("icons/icon48.png");
-    menuBtn.innerHTML = `
-      <img src="${logoUrl}" width="20" height="20" style="border-radius:4px;flex-shrink:0;" />
-      <span class="truncate group-data-[collapsible=icon]:hidden">PolyTranslate</span>
-      <span class="inline-flex items-center rounded-full border px-[6px] py-xxs1 text-[10px] font-semibold uppercase leading-tight border-transparent bg-base-brand-50 text-base-brand-100 shrink-0 group-data-[collapsible=icon]:hidden">Ext</span>`;
+  // ── Feature 1: Transcript translate button (new UI) ──
 
-    menuBtn.addEventListener("mousedown", (e) => e.stopPropagation());
-    menuBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toolbarVisible = !toolbarVisible;
-      const popover = document.querySelector(".pt-toolbar-popover");
-      if (popover) {
-        if (toolbarVisible) {
-          const rect = li.getBoundingClientRect();
-          popover.style.left = rect.right + 8 + "px";
-        }
-        popover.classList.toggle("pt-toolbar-popover-visible", toolbarVisible);
+  function isVisible(el) {
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  function getTranscriptPanel(turn) {
+    return (
+      turn.closest("#conversation-review") ||
+      turn.closest("[role='tabpanel']") ||
+      turn.closest("main") ||
+      turn.closest("aside") ||
+      turn.closest("[data-side-panel]") ||
+      turn.closest("[role='dialog']") ||
+      turn.parentElement?.parentElement?.parentElement
+    );
+  }
+
+  function getTranscriptPanels() {
+    const panels = new Set();
+    [...document.querySelectorAll("[data-turn-idx]")].forEach((turn) => {
+      if (!isVisible(turn)) return;
+      const panel = getTranscriptPanel(turn);
+      if (panel && isVisible(panel)) panels.add(panel);
+    });
+    return [...panels];
+  }
+
+  function getFirstTurn(panel) {
+    const scope = panel || document;
+    const turns = [...scope.querySelectorAll("[data-turn-idx]")].filter(isVisible);
+    return turns[0] || null;
+  }
+
+  function isInPanelHeader(btn, panel) {
+    const scope = panel || document;
+    const copyBtn = scope.querySelector('[data-test-id="copy-call-url-btn"]');
+    if (copyBtn?.parentElement?.contains(btn)) return true;
+    return Boolean(btn.closest('[data-test-id="conversation-review-header"]'));
+  }
+
+  function findNotesButton(panel) {
+    const scope = panel || document;
+    return (
+      scope.querySelector('[data-test-id="conversation-note-btn"]') ||
+      [...scope.querySelectorAll("button")].find((btn) => {
+        const label = (btn.getAttribute("aria-label") || btn.title || "").toLowerCase();
+        return label === "notes" || label.includes("add note");
+      }) ||
+      null
+    );
+  }
+
+  function isTranscriptToolbarBar(bar, firstTurn) {
+    if (!bar || !firstTurn) return false;
+
+    const barRect = bar.getBoundingClientRect();
+    const turnRect = firstTurn.getBoundingClientRect();
+    if (barRect.width === 0 || barRect.height === 0) return false;
+
+    const gap = turnRect.top - barRect.bottom;
+    if (gap < -20 || gap > 200) return false;
+    if (barRect.height > 120) return false;
+
+    return true;
+  }
+
+  function isTranscriptActionButton(btn, panel) {
+    if (isInPanelHeader(btn, panel)) return false;
+
+    const label = (
+      btn.getAttribute("aria-label") ||
+      btn.title ||
+      btn.textContent ||
+      ""
+    ).toLowerCase();
+    if (
+      label.includes("close") ||
+      label.includes("dismiss") ||
+      label.includes("external") ||
+      label.includes("new tab") ||
+      label.includes("share") ||
+      label.includes("copy call") ||
+      label.includes("call link") ||
+      label.includes("pop out") ||
+      label.includes("open in")
+    ) {
+      return false;
+    }
+    if (label.includes("diagnostic") || label.includes("diagnosis")) return false;
+    if (
+      label.includes("copy") ||
+      label.includes("note") ||
+      label.includes("setting") ||
+      label.includes("edit") ||
+      label.includes("download") ||
+      label.includes("more")
+    ) {
+      return true;
+    }
+    return Boolean(btn.querySelector("svg") && !btn.textContent.trim());
+  }
+
+  function isAboveTranscript(btn, turnTop) {
+    const rect = btn.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    const gap = turnTop - rect.bottom;
+    return gap >= -30 && gap < 500;
+  }
+
+  function findTranscriptActionBar(firstTurn, panel) {
+    if (!firstTurn) return null;
+
+    const turnTop = firstTurn.getBoundingClientRect().top;
+    const scope = panel || getTranscriptPanel(firstTurn) || document;
+
+    const notesBtn = findNotesButton(scope);
+    if (notesBtn && isAboveTranscript(notesBtn, turnTop) && !isInPanelHeader(notesBtn, panel)) {
+      const wrapper = notesBtn.parentElement;
+      const bar = wrapper?.parentElement;
+      if (bar && isTranscriptToolbarBar(bar, firstTurn)) {
+        return { type: "bar", el: bar, insertBefore: wrapper || notesBtn };
       }
+    }
+
+    const candidates = [...scope.querySelectorAll("button, a")].filter((btn) => {
+      if (btn.closest(".pt-translate-split")) return false;
+      if (!isTranscriptActionButton(btn, panel)) return false;
+      return isAboveTranscript(btn, turnTop);
     });
 
-    li.setAttribute("data-side-panel-ignore-outside-click", "true");
-    li.addEventListener("mousedown", (e) => e.stopPropagation());
-    li.appendChild(menuBtn);
-    footerUl.insertBefore(li, footerUl.firstChild);
+    if (candidates.length > 0) {
+      const byParent = new Map();
+      candidates.forEach((btn) => {
+        const bar = btn.parentElement;
+        if (!bar) return;
+        if (!byParent.has(bar)) byParent.set(bar, []);
+        byParent.get(bar).push(btn);
+      });
 
-    // Popover toolbar
-    const popover = document.createElement("div");
-    popover.className = "pt-toolbar-popover";
-    popover.setAttribute("data-side-panel-ignore-outside-click", "true");
-    popover.addEventListener("mousedown", (e) => e.stopPropagation());
-    popover.addEventListener("click", (e) => e.stopPropagation());
+      let bestBar = null;
+      let bestButtons = [];
+      for (const [bar, btns] of byParent) {
+        if (btns.length > bestButtons.length) {
+          bestBar = bar;
+          bestButtons = btns;
+        }
+      }
+
+      if (bestBar) {
+        bestButtons.sort(
+          (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left
+        );
+        return { type: "bar", el: bestBar, insertBefore: bestButtons[0] };
+      }
+    }
+
+    let node = firstTurn.parentElement;
+    while (node && node !== scope && node !== document.body) {
+      let prev = node.previousElementSibling;
+      while (prev) {
+        const gap = turnTop - prev.getBoundingClientRect().bottom;
+        if (gap > 400) break;
+        if (prev.querySelector("button") || getComputedStyle(prev).display.includes("flex")) {
+          return { type: "bar", el: prev };
+        }
+        prev = prev.previousElementSibling;
+      }
+      node = node.parentElement;
+    }
+
+    const turnsContainer = firstTurn.parentElement;
+    if (turnsContainer?.parentElement) {
+      return {
+        type: "before-turns",
+        parent: turnsContainer.parentElement,
+        before: turnsContainer,
+      };
+    }
+
+    return null;
+  }
+
+  function isButtonWellPlaced(split, firstTurn, panel) {
+    if (!split.isConnected || !isVisible(split)) return false;
+
+    const root = panel || getTranscriptPanel(firstTurn);
+    if (root && !root.contains(split)) return false;
+    if (isInPanelHeader(split, root)) return false;
+
+    const turnRect = firstTurn.getBoundingClientRect();
+    const splitRect = split.getBoundingClientRect();
+    const gap = turnRect.top - splitRect.bottom;
+    if (gap < -30 || gap >= 500) return false;
+
+    const rootRect = root?.getBoundingClientRect();
+    if (rootRect && splitRect.right <= rootRect.left + rootRect.width * 0.45) {
+      return false;
+    }
+
+    const notesBtn = findNotesButton(root);
+    if (notesBtn) {
+      const notesRect = notesBtn.getBoundingClientRect();
+      const wrapper = notesBtn.parentElement;
+      const toolbar = wrapper?.parentElement;
+      if (!toolbar || !isTranscriptToolbarBar(toolbar, firstTurn)) return false;
+      if (!toolbar.contains(split)) return false;
+      if (split.nextElementSibling !== wrapper && split.parentElement !== toolbar) return false;
+      if (splitRect.left >= notesRect.left - 4) return false;
+      if (Math.abs(splitRect.bottom - notesRect.bottom) > 20) return false;
+      return true;
+    }
+
+    const turnTop = turnRect.top;
+    const scope = root || document;
+    const siblingIcons = [...scope.querySelectorAll("button, a")].filter((b) => {
+      if (b.closest(".pt-translate-split")) return false;
+      return isTranscriptActionButton(b, panel) && isAboveTranscript(b, turnTop);
+    });
+    if (siblingIcons.length > 0) {
+      siblingIcons.sort(
+        (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left
+      );
+      const leftmost = siblingIcons[0].getBoundingClientRect().left;
+      if (splitRect.left >= leftmost - 4) return false;
+    }
+
+    return true;
+  }
+
+  function removeTranscriptTranslateButton() {
+    document.querySelectorAll(".pt-transcript-toolbar").forEach((el) => el.remove());
+    document.querySelectorAll(".pt-translate-split").forEach((el) => el.remove());
+    document.querySelectorAll(".pt-translate-lang-dropdown").forEach((el) => el.remove());
+  }
+
+  let langDropdownAnchor = null;
+
+  function positionLangDropdown(dropdown, langBtn) {
+    const rect = langBtn.getBoundingClientRect();
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const height = dropdownRect.height || 52;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < height + 12 && rect.top > height + 12;
+
+    dropdown.style.position = "fixed";
+    dropdown.style.left = "auto";
+    dropdown.style.right = `${window.innerWidth - rect.right}px`;
+    dropdown.style.zIndex = "2147483647";
+
+    if (openUp) {
+      dropdown.style.top = "auto";
+      dropdown.style.bottom = `${window.innerHeight - rect.top + 6}px`;
+      dropdown.classList.add("pt-translate-lang-dropdown-up");
+    } else {
+      dropdown.style.top = `${rect.bottom + 6}px`;
+      dropdown.style.bottom = "auto";
+      dropdown.classList.remove("pt-translate-lang-dropdown-up");
+    }
+  }
+
+  function closeLangDropdown() {
+    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
+    if (dropdown) dropdown.classList.remove("pt-translate-lang-dropdown-visible");
+    langDropdownAnchor = null;
+  }
+
+  function buildTranslateSplit() {
+    const split = document.createElement("div");
+    split.className = "pt-translate-split";
+    split.setAttribute("data-side-panel-ignore-outside-click", "true");
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "pt-translate-toggle";
+    toggleBtn.setAttribute("aria-label", "Translate transcript");
+    toggleBtn.innerHTML = TRANSLATE_ICON;
+    toggleBtn.addEventListener("click", toggleConversationTranslation);
+
+    const langBtn = document.createElement("button");
+    langBtn.className = "pt-translate-lang-btn";
+    langBtn.setAttribute("aria-label", "Select languages");
+    langBtn.innerHTML = `<span class="pt-translate-lang-label">${langPairLabel()}</span>`;
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "pt-translate-lang-dropdown";
+    dropdown.setAttribute("data-side-panel-ignore-outside-click", "true");
+
+    function stopPanelClose(e) {
+      e.stopPropagation();
+    }
 
     const srcSelect = buildSelect(sourceLang);
-    srcSelect.addEventListener("change", (e) => {
+    srcSelect.addEventListener("mousedown", stopPanelClose);
+    srcSelect.addEventListener("click", stopPanelClose);
+    srcSelect.addEventListener("change", async (e) => {
       sourceLang = e.target.value;
       saveSetting("pt_source", sourceLang);
+      updateLangLabel();
+      updateBadgeContent();
+      if (conversationTranslateActive) {
+        await retranslateConversation();
+      }
     });
 
     const arrow = document.createElement("span");
@@ -136,50 +430,134 @@
     arrow.textContent = "→";
 
     const tgtSelect = buildSelect(targetLang);
+    tgtSelect.addEventListener("mousedown", stopPanelClose);
+    tgtSelect.addEventListener("click", stopPanelClose);
     tgtSelect.addEventListener("change", async (e) => {
       targetLang = e.target.value;
       saveSetting("pt_target", targetLang);
+      updateLangLabel();
       updateBadgeContent();
       if (conversationTranslateActive) {
-        restoreConversationTurns();
-        const btn = document.querySelector(".pt-toolbar-popover .pt-toggle-btn");
-        if (btn) btn.innerHTML = `<span class="pt-spinner"></span> Translating…`;
-        await translateConversationTurns();
-        if (btn) btn.innerHTML = `${TRANSLATE_ICON} Live`;
+        await retranslateConversation();
       }
     });
 
-    const btn = document.createElement("button");
-    btn.className = "pt-toggle-btn";
-    btn.innerHTML = `${TRANSLATE_ICON} Translate`;
-    btn.title = "Translate transcript turns";
-    btn.addEventListener("click", toggleConversationTranslation);
+    dropdown.appendChild(srcSelect);
+    dropdown.appendChild(arrow);
+    dropdown.appendChild(tgtSelect);
 
-    popover.appendChild(srcSelect);
-    popover.appendChild(arrow);
-    popover.appendChild(tgtSelect);
-    popover.appendChild(btn);
+    langBtn.addEventListener("mousedown", stopPanelClose);
+    langBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = dropdown.classList.contains("pt-translate-lang-dropdown-visible");
+      if (isOpen) {
+        closeLangDropdown();
+        return;
+      }
+      if (!dropdown.isConnected || dropdown.parentElement !== document.body) {
+        document.body.appendChild(dropdown);
+      }
+      langDropdownAnchor = langBtn;
+      positionLangDropdown(dropdown, langBtn);
+      dropdown.classList.add("pt-translate-lang-dropdown-visible");
+    });
 
-    document.body.appendChild(popover);
+    dropdown.addEventListener("mousedown", stopPanelClose);
 
+    toggleBtn.addEventListener("mousedown", stopPanelClose);
+    toggleBtn.addEventListener("click", (e) => e.stopPropagation());
+    split.addEventListener("mousedown", stopPanelClose);
+
+    split.appendChild(toggleBtn);
+    split.appendChild(langBtn);
+
+    split._ptDropdown = dropdown;
+    return split;
   }
 
-  function updateBadgeContent() {
-    const badge = targetLang.toUpperCase();
-    document.documentElement.style.setProperty("--pt-badge", `"${badge}"`);
+  function injectTranslateButton(panel, firstTurn) {
+    const existing = panel.querySelector(".pt-translate-split");
+    if (existing && isButtonWellPlaced(existing, firstTurn, panel)) return;
+    if (existing) {
+      existing.closest(".pt-transcript-toolbar")?.remove();
+      if (existing.isConnected) existing.remove();
+    }
+
+    const anchor = findTranscriptActionBar(firstTurn, panel);
+    if (!anchor) return;
+
+    const split = buildTranslateSplit();
+
+    if (anchor.type === "bar") {
+      anchor.el.insertBefore(split, anchor.insertBefore || anchor.el.firstChild);
+      return;
+    }
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "pt-transcript-toolbar";
+    toolbar.appendChild(split);
+    anchor.parent.insertBefore(toolbar, anchor.before);
+  }
+
+  function createTranscriptTranslateButton() {
+    const panels = getTranscriptPanels();
+    if (panels.length === 0) {
+      removeTranscriptTranslateButton();
+      return;
+    }
+
+    const activePanels = new Set(panels);
+    document.querySelectorAll(".pt-translate-split").forEach((split) => {
+      const panel =
+        split.closest(
+          "#conversation-review, [role='tabpanel'], main, aside, [data-side-panel], [role='dialog']"
+        ) || getTranscriptPanel(split);
+      if (!panel || !activePanels.has(panel)) {
+        split.closest(".pt-transcript-toolbar")?.remove();
+        if (split.isConnected) split.remove();
+      }
+    });
+
+    panels.forEach((panel) => {
+      const firstTurn = getFirstTurn(panel);
+      if (firstTurn) injectTranslateButton(panel, firstTurn);
+    });
   }
 
   function resetTranslateButton() {
     conversationTranslateActive = false;
-    const btn = document.querySelector(".pt-toolbar-popover .pt-toggle-btn");
-    if (btn) {
-      btn.classList.remove("pt-active");
-      btn.innerHTML = `${TRANSLATE_ICON} Translate`;
-    }
+    setTranslateToggleIdle();
   }
 
   let panelObserver = null;
   let liveTranslateDebounce = null;
+  let lastConversationFingerprint = "";
+
+  function getConversationFingerprint() {
+    return getTranscriptPanels()
+      .map((panel) => {
+        const firstTurn = getFirstTurn(panel);
+        if (!firstTurn) return "";
+        const header = panel.querySelector("h1, h2, h3, [class*='title']");
+        return (
+          (firstTurn.getAttribute("data-turn-idx") || "") +
+          (header?.textContent?.slice(0, 80) || "")
+        );
+      })
+      .join("|");
+  }
+
+  function maybeResetOnConversationChange() {
+    const fingerprint = getConversationFingerprint();
+    if (!fingerprint) return;
+    if (lastConversationFingerprint && fingerprint !== lastConversationFingerprint) {
+      stopWatchingPanels();
+      restoreConversationTurns();
+      resetTranslateButton();
+    }
+    lastConversationFingerprint = fingerprint;
+  }
 
   function translateNewSpans() {
     if (liveTranslateDebounce) return;
@@ -216,14 +594,14 @@
       panelObserver = null;
     }
 
-    const targets = [
-      document.querySelector("#conversation-review"),
-      document.querySelector("#chat-panel"),
-    ].filter(Boolean);
+    const targets = [...getTranscriptPanels()];
+    const chat = document.querySelector("#chat-panel");
+    if (chat) targets.push(chat);
 
     if (targets.length === 0) return;
 
     panelObserver = new MutationObserver(() => {
+      maybeResetOnConversationChange();
       if (conversationTranslateActive) {
         translateNewSpans();
       }
@@ -241,46 +619,74 @@
     }
   }
 
+  async function retranslateConversation() {
+    restoreConversationTurns();
+    setTranslateToggleLoading();
+    await translateConversationTurns();
+    setTranslateToggleActive();
+  }
+
   async function toggleConversationTranslation() {
-    const btn = document.querySelector(".pt-toolbar-popover .pt-toggle-btn");
+    closeLangDropdown();
+
     conversationTranslateActive = !conversationTranslateActive;
-    btn.classList.toggle("pt-active", conversationTranslateActive);
 
     if (conversationTranslateActive) {
-      btn.innerHTML = `<span class="pt-spinner"></span> Translating…`;
+      setTranslateToggleLoading();
       await translateConversationTurns();
-      btn.innerHTML = `${TRANSLATE_ICON} Live`;
+      setTranslateToggleActive();
       watchPanels();
     } else {
       stopWatchingPanels();
       restoreConversationTurns();
-      btn.innerHTML = `${TRANSLATE_ICON} Translate`;
+      setTranslateToggleIdle();
     }
   }
 
   function getConversationTurnSpans() {
     const spans = [];
+    const seen = new Set();
 
-    // Conversation review panel turns
+    function addSpan(el) {
+      if (!el || seen.has(el)) return;
+      const text = el.textContent.trim();
+      if (text.length === 0) return;
+      if (/^[\w]+_function$/.test(text) || /^fx\s/.test(text)) return;
+      seen.add(el);
+      spans.push(el);
+    }
+
     document.querySelectorAll("[data-turn-idx]").forEach((turn) => {
-      turn.querySelectorAll("span.whitespace-pre-wrap").forEach((span) => {
-        if (span.textContent.trim().length > 0) {
-          spans.push(span);
-        }
-      });
+      const selectors = [
+        "span.whitespace-pre-wrap",
+        "[class*='MessageText']",
+        "[class*='message-text']",
+        "[class*='turn-text']",
+        "p",
+      ];
+      for (const sel of selectors) {
+        turn.querySelectorAll(sel).forEach(addSpan);
+      }
     });
 
-    // Live chat message bubbles — avoid brittle styled-components hashes;
-    // walk up from the test-id anchor to find the first text-bearing child
+    if (spans.length === 0) {
+      const roots = getTranscriptPanels();
+      const scope = roots[0] || document;
+      scope.querySelectorAll("[data-test-id='chat-message-text']").forEach((bubble) => {
+        const textEl =
+          bubble.querySelector("[class*='MessageText']") ||
+          bubble.querySelector("div");
+        addSpan(textEl);
+      });
+    }
+
     document.querySelectorAll('[data-test-id="chatMessages"] [data-test-id="chat-message-text"]').forEach((bubble) => {
       const textEl =
         bubble.querySelector("[class*='MessageText']") ||
         bubble.querySelector("div.gzGCB") ||
         bubble.querySelector(".sc-erUUZj") ||
         bubble.querySelector("div");
-      if (textEl && textEl.textContent.trim().length > 0 && !spans.includes(textEl)) {
-        spans.push(textEl);
-      }
+      addSpan(textEl);
     });
 
     return spans;
@@ -318,13 +724,12 @@
     });
   }
 
-  // ── Feature 3: Input auto-translator ──
+  // ── Feature 2: Input auto-translator ──
 
   function createInputTranslateButton() {
     const textarea = document.querySelector("#chat-panel textarea");
     if (!textarea || textarea.dataset.ptBound) return;
 
-    // Clean up orphaned anchors from previous textarea instances
     document.querySelectorAll(".pt-input-anchor").forEach((el) => el.remove());
 
     textarea.dataset.ptBound = "true";
@@ -332,7 +737,6 @@
     const wrapper = textarea.closest(".dAvboU") || textarea.closest("div");
     if (!wrapper) return;
 
-    // Translate popover container (anchored to wrapper)
     const anchor = document.createElement("div");
     anchor.className = "pt-input-anchor";
     anchor.setAttribute("data-side-panel-ignore-outside-click", "true");
@@ -409,9 +813,7 @@
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "y" || e.key === "Y")) {
         e.preventDefault();
         e.stopPropagation();
-        const activeTextarea = document.querySelector(
-          "#chat-panel textarea"
-        );
+        const activeTextarea = document.querySelector("#chat-panel textarea");
         if (activeTextarea && activeTextarea.value.trim()) {
           translateInput(activeTextarea);
         }
@@ -472,27 +874,91 @@
     }
 
     updateBadgeContent();
-    createConversationToolbar();
+    createTranscriptTranslateButton();
     createInputTranslateButton();
   }
 
+  function isIgnorableDomMutation(mutations) {
+    const changed = [];
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === 1) changed.push(node);
+      });
+      mutation.removedNodes.forEach((node) => {
+        if (node.nodeType === 1) changed.push(node);
+      });
+    }
+    if (changed.length === 0) return true;
+
+    return changed.every((node) => {
+      if (
+        node.matches?.(
+          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, [data-floating-ui-portal], [role='tooltip']"
+        )
+      ) {
+        return true;
+      }
+      return Boolean(
+        node.closest?.(
+          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, [data-floating-ui-portal], [role='tooltip']"
+        )
+      );
+    });
+  }
+
   let pageObserverDebounce = null;
-  const pageObserver = new MutationObserver(() => {
+  const pageObserver = new MutationObserver((mutations) => {
     if (!chrome.runtime?.id) {
       pageObserver.disconnect();
       return;
     }
+    if (isIgnorableDomMutation(mutations)) return;
     if (pageObserverDebounce) return;
     pageObserverDebounce = setTimeout(() => {
       pageObserverDebounce = null;
-      createConversationToolbar();
+      createTranscriptTranslateButton();
       createInputTranslateButton();
 
-      // Re-attach panel watcher if live translation is on but targets were replaced
       if (conversationTranslateActive) {
         watchPanels();
       }
     }, 200);
+  });
+
+  document.addEventListener("click", (e) => {
+    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
+    const split = document.querySelector(".pt-translate-split");
+    if (
+      dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
+      !dropdown.contains(e.target) &&
+      !split?.contains(e.target)
+    ) {
+      closeLangDropdown();
+    }
+  });
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      const dropdown = document.querySelector(".pt-translate-lang-dropdown");
+      if (
+        dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
+        langDropdownAnchor
+      ) {
+        positionLangDropdown(dropdown, langDropdownAnchor);
+      }
+    },
+    true
+  );
+
+  window.addEventListener("resize", () => {
+    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
+    if (
+      dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
+      langDropdownAnchor
+    ) {
+      positionLangDropdown(dropdown, langDropdownAnchor);
+    }
   });
 
   if (document.readyState === "loading") {

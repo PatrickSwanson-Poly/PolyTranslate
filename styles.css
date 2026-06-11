@@ -1,4 +1,148 @@
-/* PolyTranslate — minimal injection styles */
+/* PolyTranslate — injected UI styles */
+
+/* ── Transcript toolbar row ── */
+
+.pt-transcript-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
+  box-sizing: border-box;
+}
+
+/* ── Split translate button ── */
+
+.pt-translate-split {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  overflow: visible;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  flex-shrink: 0;
+  isolation: isolate;
+  margin: 0 20px 0 0;
+  background: #D9EE50;
+  border: 1px solid rgba(22, 22, 23, 0.08);
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pt-translate-split:not(.pt-split-active):hover {
+  background: #eafa82;
+}
+
+.pt-translate-split.pt-split-active {
+  background: #e8e8e8;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.pt-translate-toggle,
+.pt-translate-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: #161617;
+  background: transparent;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.pt-translate-toggle {
+  padding: 4px 8px 4px 9px;
+  border-radius: 999px 0 0 999px;
+}
+
+.pt-translate-lang-btn {
+  padding: 4px 10px 4px 8px;
+  border-left: 1px solid rgba(22, 22, 23, 0.12);
+  border-radius: 0 999px 999px 0;
+}
+
+.pt-translate-split:not(.pt-split-active) .pt-translate-toggle:hover:not(:disabled),
+.pt-translate-split:not(.pt-split-active) .pt-translate-lang-btn:hover:not(:disabled) {
+  background: rgba(22, 22, 23, 0.05);
+}
+
+.pt-translate-split.pt-split-active .pt-translate-toggle,
+.pt-translate-split.pt-split-active .pt-translate-lang-btn {
+  color: #6b6b6b;
+}
+
+.pt-translate-split.pt-split-active .pt-translate-lang-btn {
+  border-left-color: rgba(0, 0, 0, 0.1);
+}
+
+.pt-translate-split.pt-split-active .pt-translate-toggle:hover:not(:disabled),
+.pt-translate-split.pt-split-active .pt-translate-lang-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pt-translate-toggle svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.pt-translate-toggle .pt-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(22, 22, 23, 0.15);
+  border-top-color: #161617;
+}
+
+.pt-translate-state-label {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Language dropdown — portaled to document.body to avoid sidebar clipping */
+.pt-translate-lang-dropdown {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 2147483647;
+  opacity: 0;
+  transform: scale(0.95) translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+  transform-origin: top right;
+  min-width: max-content;
+}
+
+.pt-translate-lang-dropdown-up {
+  transform-origin: bottom right;
+  transform: scale(0.95) translateY(4px);
+}
+
+.pt-translate-lang-dropdown-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.pt-translate-lang-dropdown-up.pt-translate-lang-dropdown-visible {
+  transform: scale(1) translateY(0);
+}
+
+/* ── Shared toggle button (legacy / input) ── */
 
 .pt-toggle-btn {
   display: inline-flex;
@@ -9,13 +153,12 @@
   border-radius: 6px;
   background: #fff;
   color: #161617;
-  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   user-select: none;
-  z-index: 1000;
 }
 
 .pt-toggle-btn:hover {
@@ -41,7 +184,7 @@
   border-radius: 6px;
   background: #fff;
   color: #161617;
-  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -80,7 +223,6 @@
   user-select: none;
 }
 
-
 /* Translation badge shown inline after translated text */
 .pt-translated::after {
   content: var(--pt-badge, "EN");
@@ -97,111 +239,7 @@
   pointer-events: none;
 }
 
-/* Original text tooltip on hover */
-.pt-has-original:hover .pt-original-tooltip {
-  display: block;
-}
-
-.pt-original-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  background: #161617;
-  color: #fff;
-  font-size: 12px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  z-index: 10000;
-  white-space: pre-wrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  pointer-events: none;
-}
-
-/* Sidebar menu item — match native Studio hover: subtle grey shift, text brightens */
-.pt-sidebar-item a[data-sidebar="menu-button"] {
-  color: rgba(255,255,255,0.65);
-  transition: background 0.15s, color 0.15s;
-}
-
-.pt-sidebar-item a[data-sidebar="menu-button"]:hover {
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.95);
-}
-
-/* Popover toolbar anchored near sidebar bottom */
-.pt-toolbar-popover {
-  position: fixed;
-  bottom: 120px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  z-index: 2147483647;
-  transform-origin: bottom left;
-  transition: opacity 0.15s, transform 0.15s;
-  opacity: 0;
-  transform: scale(0.95) translateX(-4px);
-  pointer-events: none;
-}
-
-.pt-toolbar-popover-visible {
-  opacity: 1;
-  transform: scale(1) translateX(0);
-  pointer-events: auto;
-}
-
-/* Arrow pointing left toward sidebar */
-.pt-toolbar-popover::before {
-  content: "";
-  position: absolute;
-  left: -6px;
-  bottom: 14px;
-  width: 10px;
-  height: 10px;
-  background: #fff;
-  border-left: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-  transform: rotate(45deg);
-}
-
 /* Chat panel translate button */
-.pt-chat-translate-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #fff;
-  color: #161617;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-}
-
-.pt-chat-translate-btn:hover {
-  border-color: #D9EE50;
-  background: #fafff0;
-}
-
-.pt-chat-translate-btn.pt-active {
-  background: #D9EE50;
-  border-color: #D9EE50;
-}
-
-.pt-chat-translate-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Anchor for translate button + popup inside textarea wrapper */
 .pt-input-anchor {
   position: absolute;
   z-index: 2;
@@ -233,7 +271,7 @@
 
 .pt-input-circle-btn:hover {
   transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .pt-input-circle-dim {
@@ -241,7 +279,6 @@
   cursor: default;
 }
 
-/* Tooltip on hover */
 [data-pt-tooltip] {
   position: relative;
 }
@@ -254,7 +291,7 @@
   transform: translateY(-50%);
   background: #161617;
   color: #fff;
-  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 11px;
   font-weight: 500;
   padding: 4px 8px;
@@ -269,7 +306,6 @@
   opacity: 1;
 }
 
-/* Popup with language select + translate */
 .pt-input-popup {
   position: absolute;
   right: 0;
@@ -281,7 +317,7 @@
   padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   opacity: 0;
   transform: scale(0.9) translateY(4px);
   pointer-events: none;
@@ -302,7 +338,7 @@
   border-radius: 6px;
   background: #D9EE50;
   color: #161617;
-  font-family: "Proxima Nova", system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -311,11 +347,6 @@
 
 .pt-input-go-btn:hover {
   background: #eafa82;
-}
-
-.pt-input-translate-btn:hover {
-  border-color: #D9EE50;
-  background: #fafff0;
 }
 
 .pt-spinner {
