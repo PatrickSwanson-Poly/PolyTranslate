@@ -91,18 +91,44 @@
     });
   }
 
+  function setToggleIcon(btn, html) {
+    const icon = btn.querySelector(".pt-translate-toggle-icon");
+    if (icon) icon.innerHTML = html;
+  }
+
+  function attachTranslateTooltip(btn) {
+    if (btn.querySelector(".pt-translate-tooltip")) return;
+
+    const tooltip = document.createElement("span");
+    tooltip.className = "pt-translate-tooltip";
+    tooltip.setAttribute("aria-hidden", "true");
+    tooltip.innerHTML =
+      '<span class="pt-translate-tooltip-label">Translate</span>' +
+      '<svg class="pt-translate-tooltip-caret" fill="#161617" aria-hidden="true" width="10" height="10" viewBox="0 0 10 10">' +
+      '<path stroke="none" d="M0,0 H10 L6.25,3.75 Q5,5 3.75,3.75 Z"></path></svg>';
+    btn.appendChild(tooltip);
+    btn.addEventListener("mouseenter", () => {
+      tooltip.classList.add("pt-translate-tooltip-visible");
+    });
+    btn.addEventListener("mouseleave", () => {
+      tooltip.classList.remove("pt-translate-tooltip-visible");
+    });
+  }
+
   function setTranslateToggleIdle() {
     setTranslateSplitActive(false);
     document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
       btn.classList.remove("pt-active");
-      btn.innerHTML = TRANSLATE_ICON;
+      setToggleIcon(btn, TRANSLATE_ICON);
+      attachTranslateTooltip(btn);
       btn.setAttribute("aria-label", "Translate transcript");
     });
   }
 
   function setTranslateToggleLoading() {
     document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
-      btn.innerHTML = `<span class="pt-spinner"></span>`;
+      setToggleIcon(btn, `<span class="pt-spinner"></span>`);
+      attachTranslateTooltip(btn);
     });
   }
 
@@ -110,7 +136,8 @@
     setTranslateSplitActive(true);
     document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
       btn.classList.add("pt-active");
-      btn.innerHTML = `${TRANSLATE_ICON}<span class="pt-translate-state-label">Translated</span>`;
+      setToggleIcon(btn, TRANSLATE_ICON);
+      attachTranslateTooltip(btn);
       btn.setAttribute("aria-label", "Translation active");
     });
   }
@@ -386,6 +413,9 @@
     const dropdown = document.querySelector(".pt-translate-lang-dropdown");
     if (dropdown) dropdown.classList.remove("pt-translate-lang-dropdown-visible");
     langDropdownAnchor = null;
+    document.querySelectorAll(".pt-translate-split").forEach((split) => {
+      split.classList.remove("pt-lang-open");
+    });
   }
 
   function buildTranslateSplit() {
@@ -396,7 +426,8 @@
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "pt-translate-toggle";
     toggleBtn.setAttribute("aria-label", "Translate transcript");
-    toggleBtn.innerHTML = TRANSLATE_ICON;
+    toggleBtn.innerHTML = `<span class="pt-translate-toggle-icon">${TRANSLATE_ICON}</span>`;
+    attachTranslateTooltip(toggleBtn);
     toggleBtn.addEventListener("click", toggleConversationTranslation);
 
     const langBtn = document.createElement("button");
@@ -458,6 +489,7 @@
       if (!dropdown.isConnected || dropdown.parentElement !== document.body) {
         document.body.appendChild(dropdown);
       }
+      split.classList.add("pt-lang-open");
       langDropdownAnchor = langBtn;
       positionLangDropdown(dropdown, langBtn);
       dropdown.classList.add("pt-translate-lang-dropdown-visible");
@@ -927,11 +959,13 @@
 
   document.addEventListener("click", (e) => {
     const dropdown = document.querySelector(".pt-translate-lang-dropdown");
-    const split = document.querySelector(".pt-translate-split");
+    const clickedInsideSplit = [...document.querySelectorAll(".pt-translate-split")].some(
+      (split) => split.contains(e.target)
+    );
     if (
       dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
       !dropdown.contains(e.target) &&
-      !split?.contains(e.target)
+      !clickedInsideSplit
     ) {
       closeLangDropdown();
     }
