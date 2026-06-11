@@ -25,7 +25,7 @@ PolyTranslate is designed so that **no translation data ever leaves your machine
 - Translation runs entirely in-browser via a WebAssembly (WASM) build of [Bergamot Translator](https://github.com/browsermt/bergamot-translator)
 - Language models are downloaded once during setup and stored locally in the `models/` directory
 - After setup, the extension works fully offline — no network requests during translation
-- The only network activity is the one-time model download when you run `polyt init` or `polyt add`
+- The only network activity is the one-time model download during setup (`./setup.sh init`) or when adding languages
 
 ## Installation
 
@@ -62,17 +62,15 @@ You'll see an interactive picker — enter the numbers of the languages you want
 
 This would install French, German, and Spanish. Type `all` to install every language (~1.5 GB), or `q` to cancel.
 
-### 3. Install the global CLI (recommended)
-
-This lets you run `polyt` from anywhere instead of needing to be in the extension folder:
+The setup script will offer to install the `polyt` shortcut (recommended) at the end of init. If you skip it, you can always run it later:
 
 ```bash
-sudo ln -sf "$(pwd)/setup.sh" /usr/local/bin/polyt
+./setup.sh link
 ```
 
-**Without this step, you'll need to `cd` into the PolyTranslate folder and use `./setup.sh` instead of `polyt` for all commands below.**
+This creates a symlink at `/usr/local/bin/polyt` so you can run `polyt` from anywhere. Without it, use `./setup.sh` from the PolyTranslate folder.
 
-### 4. Load the extension
+### 3. Load the extension
 
 1. Open `chrome://extensions` in Chrome
 2. Enable **Developer mode** (top-right toggle)
@@ -90,6 +88,8 @@ Use the `polyt` CLI (or `./setup.sh`) to manage installed translation models:
 | `polyt update` | Re-download latest model versions for all installed languages |
 | `polyt remove` | Remove installed language models to free disk space |
 | `polyt status` | Show which models are installed and their sizes |
+| `polyt link` | Create the `polyt` shortcut in `/usr/local/bin` |
+| `polyt unlink` | Remove the `polyt` shortcut |
 
 After adding or removing languages, reload the extension in `chrome://extensions` and refresh any open Agent Studio tabs.
 
