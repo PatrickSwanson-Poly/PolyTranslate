@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$Self = if ($MyInvocation.MyCommand.Name -match 'setup') { '.\setup.ps1' } else { 'polyt' }
+$Self = if ([Environment]::CommandLine -match 'polyt') { 'polyt' } else { '.\setup.ps1' }
 $ModelsDir = Join-Path $ScriptDir 'models'
 $RegistryUrl = 'https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/translations-models/records?_limit=500'
 $CDN = 'https://firefox-settings-attachments.cdn.mozilla.net'
