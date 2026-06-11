@@ -4,7 +4,7 @@ param(
     [string]$Command = "help"
 )
 
-Set-StrictMode -Version Latest
+Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
@@ -48,8 +48,8 @@ function Write-Dim($text)    { Write-Color $text '2' }
 
 function Test-PairComplete($dir) {
     if (-not (Test-Path $dir)) { return $false }
-    $hasBin = (Get-ChildItem -Path $dir -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0
-    $hasSpm = (Get-ChildItem -Path $dir -Filter '*.spm' -ErrorAction SilentlyContinue).Count -gt 0
+    $hasBin = @(Get-ChildItem -Path $dir -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0
+    $hasSpm = @(Get-ChildItem -Path $dir -Filter '*.spm' -ErrorAction SilentlyContinue).Count -gt 0
     return ($hasBin -and $hasSpm)
 }
 
@@ -241,7 +241,7 @@ function Pick-Languages {
                 $name = Get-LangName $lang
                 $langDir = Join-Path $ModelsDir "${lang}_en"
                 $marker = '  '
-                if ((Test-Path $langDir) -and (Get-ChildItem -Path $langDir -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0) {
+                if ((Test-Path $langDir) -and @(Get-ChildItem -Path $langDir -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0) {
                     $marker = "${ESC}[32m$([char]0x2713)${ESC}[0m"
                 }
                 $num = $idx + 1
@@ -344,7 +344,7 @@ function cmd_unlink {
 function cmd_init {
     Show-Banner
 
-    $hasBin = (Test-Path $ModelsDir) -and (Get-ChildItem -Path $ModelsDir -Recurse -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0
+    $hasBin = (Test-Path $ModelsDir) -and @(Get-ChildItem -Path $ModelsDir -Recurse -Filter '*.bin' -ErrorAction SilentlyContinue).Count -gt 0
     if ($hasBin) {
         Write-Host '  Models directory already exists. Use ' -NoNewline; Write-Bold "$Self add"; Write-Host ' to install more languages'
         Write-Host '  or ' -NoNewline; Write-Bold "$Self update"; Write-Host ' to refresh existing models.'
@@ -533,7 +533,7 @@ function cmd_remove {
         Write-Host '  Removed ' -NoNewline; Write-Bold $name; Write-Host ''
     }
 
-    if ((Test-Path $ModelsDir) -and (Get-ChildItem -Path $ModelsDir -ErrorAction SilentlyContinue).Count -eq 0) {
+    if ((Test-Path $ModelsDir) -and @(Get-ChildItem -Path $ModelsDir -ErrorAction SilentlyContinue).Count -eq 0) {
         Remove-Item -Path $ModelsDir -Force
     }
 
