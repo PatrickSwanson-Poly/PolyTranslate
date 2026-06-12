@@ -14,7 +14,7 @@
   let conversationTranslateActive = false;
   const originalTexts = new WeakMap();
   const TRANSCRIPT_ICON_OK = chrome.runtime.getURL("icons/icon48_no_background.png");
-  const LOGO_OK = chrome.runtime.getURL("icons/icon48.png");
+  const LOGO_OK = chrome.runtime.getURL("icons/icon48_send.png");
   const LOGO_ERR = chrome.runtime.getURL("icons/icon48_err.png");
 
   function transcriptIconHtml(size = 16) {
@@ -99,8 +99,8 @@
 
   function translateTooltipLabel() {
     return navigator.platform.includes("Mac")
-      ? "Translate ⌘⇧Y"
-      : "Translate Ctrl+Shift+Y";
+      ? "Translate ⌘⇧U"
+      : "Translate Ctrl+Shift+U";
   }
 
   function setToggleIcon(btn, html) {
@@ -367,7 +367,7 @@
 
   function removeTranscriptTranslateButton() {
     document.querySelectorAll(".pt-transcript-toolbar").forEach((el) => el.remove());
-    document.querySelectorAll(".pt-translate-split").forEach((el) => el.remove());
+    document.querySelectorAll(".pt-translate-split:not(.pt-chat-translate-split)").forEach((el) => el.remove());
     document.querySelectorAll(".pt-translate-lang-dropdown").forEach((el) => el.remove());
   }
 
@@ -525,7 +525,7 @@
     }
 
     const activePanels = new Set(panels);
-    document.querySelectorAll(".pt-translate-split").forEach((split) => {
+    document.querySelectorAll(".pt-translate-split:not(.pt-chat-translate-split)").forEach((split) => {
       const panel =
         split.closest(
           "#conversation-review, [role='tabpanel'], main, aside, [data-side-panel], [role='dialog']"
@@ -746,6 +746,21 @@
         }
       });
 
+    document
+      .querySelectorAll('[data-test-id="chatMessages"] [data-test-id="chat-message-text"]')
+      .forEach((bubble) => {
+        const textEl =
+          bubble.querySelector("[class*='MessageText']") ||
+          bubble.querySelector("div");
+        if (textEl && !seen.has(textEl)) {
+          const text = getSpanPlainText(textEl).trim();
+          if (!isNonMessageText(text)) {
+            seen.add(textEl);
+            spans.push(textEl);
+          }
+        }
+      });
+
     return spans;
   }
 
@@ -796,11 +811,27 @@
     span.appendChild(wrap);
   }
 
+  function isChatMessageSpan(span) {
+    return Boolean(span.closest('[data-test-id="chatMessages"]'));
+  }
+
+  function renderChatInlineTranslation(span, original, translated) {
+    if (translationNotNeeded(original, translated)) return;
+    originalTexts.set(span, original);
+    span.textContent = translated;
+    span.classList.add("pt-translated", "pt-chat-inline");
+    span.setAttribute("data-pt-lang", langAbbr(targetLang));
+  }
+
   function applyTurnTranslations(spans, texts, translated) {
     spans.forEach((span, i) => {
       const original = texts[i];
       originalTexts.set(span, original);
-      renderTurnTranslation(span, original, translated[i]);
+      if (isChatMessageSpan(span)) {
+        renderChatInlineTranslation(span, original, translated[i]);
+      } else {
+        renderTurnTranslation(span, original, translated[i]);
+      }
     });
   }
 
@@ -829,35 +860,59 @@
       const original = originalTexts.get(span);
       if (original !== undefined) {
         span.textContent = original;
-        span.classList.remove("pt-translated", "pt-no-translation", "pt-has-original");
+        span.classList.remove("pt-translated", "pt-no-translation", "pt-has-original", "pt-chat-inline");
+        span.removeAttribute("data-pt-lang");
       }
     });
   }
 
   function handleTranslateShortcut(e) {
-    if (!((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "y" || e.key === "Y"))) {
+    if (!((e.metaKey || e.ctrlKey) && e.shiftKey)) return;
+
+    if (e.key === "y" || e.key === "Y") {
+      const chatTextarea = document.querySelector("#chat-panel textarea");
+      if (
+        chatTextarea &&
+        document.activeElement === chatTextarea &&
+        chatTextarea.value.trim()
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        translateInput(chatTextarea);
+      }
       return;
     }
 
-    const chatTextarea = document.querySelector("#chat-panel textarea");
-    if (
-      chatTextarea &&
-      document.activeElement === chatTextarea &&
-      chatTextarea.value.trim()
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-      translateInput(chatTextarea);
+    if (e.key === "u" || e.key === "U") {
+      const transcriptBtn = document.querySelector(".pt-translate-toggle");
+      const hasContent = document.querySelector("[data-turn-idx]") ||
+        document.querySelector('[data-test-id="chatMessages"]');
+      if (transcriptBtn && hasContent) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleConversationTranslation();
+      }
+    }
+  }
+
+  // ── Feature 1b: Live chat translate button ──
+
+  function createChatTranslateButton() {
+    const chatPanel = document.querySelector("#chat-panel");
+    if (!chatPanel) {
+      document.querySelectorAll(".pt-chat-translate-split").forEach((el) => el.remove());
       return;
     }
 
-    const transcriptBtn = document.querySelector(".pt-translate-toggle");
-    const hasTranscript = document.querySelector("[data-turn-idx]");
-    if (transcriptBtn && hasTranscript) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleConversationTranslation();
-    }
+    if (chatPanel.querySelector(".pt-chat-translate-split")) return;
+
+    const reviewBtn = chatPanel.querySelector("[aria-label='Review Conversation']");
+    const rightGroup = reviewBtn?.closest("[style*='gap']");
+    if (!rightGroup) return;
+
+    const split = buildTranslateSplit();
+    split.classList.add("pt-chat-translate-split");
+    rightGroup.prepend(split);
   }
 
   // ── Feature 2: Input auto-translator ──
@@ -879,10 +934,11 @@
     anchor.addEventListener("mousedown", (e) => e.stopPropagation());
     anchor.addEventListener("click", (e) => e.stopPropagation());
 
-    const logoUrl = chrome.runtime.getURL("icons/icon48.png");
+    const logoUrl = chrome.runtime.getURL("icons/icon48_send.png");
     const circleBtn = document.createElement("button");
     circleBtn.className = "pt-input-circle-btn";
-    circleBtn.setAttribute("data-pt-tooltip", translateTooltipLabel());
+    const inputShortcut = navigator.platform.includes("Mac") ? "Translate ⌘⇧Y" : "Translate Ctrl+Shift+Y";
+    circleBtn.setAttribute("data-pt-tooltip", inputShortcut);
     circleBtn.innerHTML = `<img src="${logoUrl}" width="20" height="20">`;
 
     const popup = document.createElement("div");
@@ -947,7 +1003,7 @@
   function resetInputBtn() {
     const btn = document.querySelector(".pt-input-circle-btn");
     if (btn) {
-      const logoUrl = chrome.runtime.getURL("icons/icon48.png");
+      const logoUrl = chrome.runtime.getURL("icons/icon48_send.png");
       btn.innerHTML = `<img src="${logoUrl}" width="20" height="20">`;
     }
   }
@@ -997,6 +1053,7 @@
     }
 
     createTranscriptTranslateButton();
+    createChatTranslateButton();
     createInputTranslateButton();
   }
 
@@ -1015,14 +1072,14 @@
     return changed.every((node) => {
       if (
         node.matches?.(
-          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, [data-floating-ui-portal], [role='tooltip']"
+          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, .pt-chat-translate-split, [data-floating-ui-portal], [role='tooltip']"
         )
       ) {
         return true;
       }
       return Boolean(
         node.closest?.(
-          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, [data-floating-ui-portal], [role='tooltip']"
+          ".pt-translate-split, .pt-translate-lang-dropdown, .pt-transcript-toolbar, .pt-chat-translate-split, [data-floating-ui-portal], [role='tooltip']"
         )
       );
     });
@@ -1039,6 +1096,7 @@
     pageObserverDebounce = setTimeout(() => {
       pageObserverDebounce = null;
       createTranscriptTranslateButton();
+      createChatTranslateButton();
       createInputTranslateButton();
 
       if (conversationTranslateActive) {

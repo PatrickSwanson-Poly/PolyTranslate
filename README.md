@@ -4,11 +4,15 @@ A privacy-first Chrome extension that adds offline, inline translation to PolyAI
 
 ## Features
 
-### Conversation Transcript Translation
-Translate completed conversation transcripts inline. Click the **PolyTranslate** button in the sidebar, select source/target languages, and hit **Translate**. Only messages that actually changed get a language badge. Toggle translation off to restore the originals.
+### Conversation Review Translation
+Translate completed conversation transcripts with side-by-side original and translated text. Click the **PolyTranslate** button next to the Notes button in the call review panel. The button turns gray when translation is active, and the language pair label stays visible. Toggle off to restore originals.
+
+**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
 ### Live Chat Translation
-Toggle **Live** mode from the sidebar to auto-translate incoming agent and caller messages in real time during a chat session. Works alongside the conversation review panel.
+Translate incoming agent messages in real time during a chat session. Click the **PolyTranslate** button in the chat panel header (next to the review/settings icons). Translated messages show inline with a language badge (e.g. **EN**). The button turns gray while translation is active.
+
+**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
 ### Input Auto-Translator
 A translate button sits above the send arrow in the chat textarea. Click it to select source and target languages and translate your typed input before sending.

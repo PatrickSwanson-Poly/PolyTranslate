@@ -119,6 +119,53 @@
   background: #e8e8e8;
 }
 
+.pt-chat-translate-split {
+  margin: 0;
+  flex-shrink: 0;
+  flex-direction: row;
+}
+
+.pt-chat-translate-split .pt-translate-toggle {
+  width: 22px;
+  height: 22px;
+}
+
+.pt-chat-translate-split .pt-translate-lang-btn,
+.pt-chat-translate-split:hover .pt-translate-lang-btn,
+.pt-chat-translate-split:focus-within .pt-translate-lang-btn {
+  position: absolute;
+  right: calc(100% - 9px);
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0 !important;
+  border-radius: 11px 0 0 11px;
+  height: 18px;
+  font-size: 8px;
+  max-width: 0;
+  opacity: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.pt-chat-translate-split.pt-lang-open .pt-translate-lang-btn,
+.pt-chat-translate-split.pt-split-active .pt-translate-lang-btn {
+  max-width: none;
+  overflow: visible;
+  opacity: 1;
+  padding: 0 12px 0 5px;
+  pointer-events: auto;
+}
+
+.pt-chat-translate-split .pt-translate-tooltip {
+  top: calc(100% + 4px);
+  bottom: auto;
+  flex-direction: column-reverse;
+}
+
+.pt-chat-translate-split .pt-translate-tooltip .pt-translate-tooltip-caret {
+  transform: rotate(180deg);
+}
+
 .pt-translate-lang-label {
   font-size: 9px;
   line-height: 1;
@@ -337,6 +384,22 @@
   font-size: 0.85em;
   font-weight: 400;
   line-height: 1.3;
+}
+
+/* Chat inline translation badge */
+.pt-chat-inline::after {
+  content: attr(data-pt-lang);
+  font-size: 9px;
+  font-weight: 700;
+  background: #D9EE50;
+  color: #161617;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  margin-left: 6px;
+  vertical-align: middle;
+  display: inline;
+  pointer-events: none;
 }
 
 /* Chat panel translate button */
