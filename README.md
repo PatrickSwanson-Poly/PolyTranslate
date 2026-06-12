@@ -7,15 +7,29 @@ A privacy-first Chrome extension that adds offline, inline translation to PolyAI
 ### Conversation Transcript Translation
 Translate completed conversation transcripts inline. Click the **PolyTranslate** button in the sidebar, select source/target languages, and hit **Translate**. Only messages that actually changed get a language badge. Toggle translation off to restore the originals.
 
-<img src="screenshots/conv_review_post_transcribed.png">
+**Keyboard shortcut:** `Cmd+Shift+Y` (Mac) / `Ctrl+Shift+Y` (Windows/Linux)
+
+<p align="center">
+  <img src="screenshots/post_translate_conv_review.png" alt="Call review translator">
+</p>
+
+### Test Chat Input Translation
+A translate button sits above the send arrow in the chat text area. Click it to select source and target languages and translate your typed input before sending.
+
+**Keyboard shortcut:** `Cmd+Shift+Y` (Mac) / `Ctrl+Shift+Y` (Windows/Linux)
+
+<p align="center">
+  <img src="screenshots/pre_translate_test_chat.png" width="50%" alt="Input translator">
+</p>
 
 ### Live Chat Translation
 Toggle **Live** mode from the sidebar to auto-translate incoming agent and caller messages in real time during a chat session. Works alongside the conversation review panel.
 
-### Input Auto-Translator
-A translate button sits above the send arrow in the chat text area. Click it to select source and target languages and translate your typed input before sending.
+**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
-**Keyboard shortcut:** `Cmd+Shift+Y` (Mac) / `Ctrl+Shift+Y` (Windows/Linux)
+<p align="center">
+  <img src="screenshots/post_translate_test_chat.png" width="50%" alt="Live chat translator">
+</p>
 
 ### Adaptive Extension Icon
 The toolbar icon shows the full-color PolyTranslate logo on `*.poly.ai` pages and switches to a greyed-out version on all other sites.
