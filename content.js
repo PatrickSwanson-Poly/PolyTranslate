@@ -211,20 +211,6 @@
     );
   }
 
-  function isTranscriptToolbarBar(bar, firstTurn) {
-    if (!bar || !firstTurn) return false;
-
-    const barRect = bar.getBoundingClientRect();
-    const turnRect = firstTurn.getBoundingClientRect();
-    if (barRect.width === 0 || barRect.height === 0) return false;
-
-    const gap = turnRect.top - barRect.bottom;
-    if (gap < -20 || gap > 200) return false;
-    if (barRect.height > 120) return false;
-
-    return true;
-  }
-
   function isTranscriptActionButton(btn, panel) {
     if (isInPanelHeader(btn, panel)) return false;
 
@@ -268,20 +254,41 @@
     return gap >= -30 && gap < 500;
   }
 
+  function getNotesToolbarAnchor(scope, panel) {
+    const notesBtn = findNotesButton(scope);
+    if (!notesBtn || isInPanelHeader(notesBtn, panel)) return null;
+
+    const wrapper = notesBtn.parentElement;
+    const bar = wrapper?.parentElement;
+    if (!bar) return null;
+
+    return { type: "bar", el: bar, insertBefore: wrapper || notesBtn };
+  }
+
+  function isTranslateNotesToolbar(split, panel) {
+    const root = panel || getTranscriptPanel(split) || document;
+    const notesBtn = findNotesButton(root);
+    if (!notesBtn) return false;
+
+    const wrapper = notesBtn.parentElement;
+    const toolbar = wrapper?.parentElement;
+    if (!toolbar || !toolbar.contains(split) || !toolbar.contains(notesBtn)) return false;
+    if (isInPanelHeader(split, root)) return false;
+
+    const children = [...toolbar.children];
+    const splitIdx = children.indexOf(split);
+    const notesIdx = wrapper ? children.indexOf(wrapper) : children.indexOf(notesBtn);
+    return splitIdx >= 0 && notesIdx >= 0 && splitIdx < notesIdx;
+  }
+
   function findTranscriptActionBar(firstTurn, panel) {
     if (!firstTurn) return null;
 
     const turnTop = firstTurn.getBoundingClientRect().top;
     const scope = panel || getTranscriptPanel(firstTurn) || document;
 
-    const notesBtn = findNotesButton(scope);
-    if (notesBtn && isAboveTranscript(notesBtn, turnTop) && !isInPanelHeader(notesBtn, panel)) {
-      const wrapper = notesBtn.parentElement;
-      const bar = wrapper?.parentElement;
-      if (bar && isTranscriptToolbarBar(bar, firstTurn)) {
-        return { type: "bar", el: bar, insertBefore: wrapper || notesBtn };
-      }
-    }
+    const notesAnchor = getNotesToolbarAnchor(scope, panel);
+    if (notesAnchor) return notesAnchor;
 
     const candidates = [...scope.querySelectorAll("button, a")].filter((btn) => {
       if (btn.closest(".pt-translate-split")) return false;
@@ -348,44 +355,14 @@
     if (root && !root.contains(split)) return false;
     if (isInPanelHeader(split, root)) return false;
 
-    const turnRect = firstTurn.getBoundingClientRect();
-    const splitRect = split.getBoundingClientRect();
-    const gap = turnRect.top - splitRect.bottom;
-    if (gap < -30 || gap >= 500) return false;
+    if (isTranslateNotesToolbar(split, panel || root)) return true;
 
-    const rootRect = root?.getBoundingClientRect();
-    if (rootRect && splitRect.right <= rootRect.left + rootRect.width * 0.45) {
-      return false;
-    }
-
-    const notesBtn = findNotesButton(root);
-    if (notesBtn) {
-      const notesRect = notesBtn.getBoundingClientRect();
-      const wrapper = notesBtn.parentElement;
-      const toolbar = wrapper?.parentElement;
-      if (!toolbar || !isTranscriptToolbarBar(toolbar, firstTurn)) return false;
-      if (!toolbar.contains(split)) return false;
-      if (split.nextElementSibling !== wrapper && split.parentElement !== toolbar) return false;
-      if (splitRect.left >= notesRect.left - 4) return false;
-      if (Math.abs(splitRect.bottom - notesRect.bottom) > 20) return false;
+    const fallbackToolbar = split.closest(".pt-transcript-toolbar");
+    if (fallbackToolbar && firstTurn && root?.contains(fallbackToolbar)) {
       return true;
     }
 
-    const turnTop = turnRect.top;
-    const scope = root || document;
-    const siblingIcons = [...scope.querySelectorAll("button, a")].filter((b) => {
-      if (b.closest(".pt-translate-split")) return false;
-      return isTranscriptActionButton(b, panel) && isAboveTranscript(b, turnTop);
-    });
-    if (siblingIcons.length > 0) {
-      siblingIcons.sort(
-        (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left
-      );
-      const leftmost = siblingIcons[0].getBoundingClientRect().left;
-      if (splitRect.left >= leftmost - 4) return false;
-    }
-
-    return true;
+    return false;
   }
 
   function removeTranscriptTranslateButton() {
