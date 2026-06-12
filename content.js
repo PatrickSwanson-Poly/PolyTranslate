@@ -756,6 +756,32 @@
     });
   }
 
+  function handleTranslateShortcut(e) {
+    if (!((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "y" || e.key === "Y"))) {
+      return;
+    }
+
+    const chatTextarea = document.querySelector("#chat-panel textarea");
+    if (
+      chatTextarea &&
+      document.activeElement === chatTextarea &&
+      chatTextarea.value.trim()
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      translateInput(chatTextarea);
+      return;
+    }
+
+    const transcriptBtn = document.querySelector(".pt-translate-toggle");
+    const hasTranscript = document.querySelector("[data-turn-idx]");
+    if (transcriptBtn && hasTranscript) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleConversationTranslation();
+    }
+  }
+
   // ── Feature 2: Input auto-translator ──
 
   function createInputTranslateButton() {
@@ -840,17 +866,6 @@
     anchor.appendChild(popup);
     anchor.appendChild(circleBtn);
     wrapper.appendChild(anchor);
-
-    document.addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "y" || e.key === "Y")) {
-        e.preventDefault();
-        e.stopPropagation();
-        const activeTextarea = document.querySelector("#chat-panel textarea");
-        if (activeTextarea && activeTextarea.value.trim()) {
-          translateInput(activeTextarea);
-        }
-      }
-    }, true);
   }
 
   function resetInputBtn() {
@@ -956,6 +971,8 @@
       }
     }, 200);
   });
+
+  document.addEventListener("keydown", handleTranslateShortcut, true);
 
   document.addEventListener("click", (e) => {
     const dropdown = document.querySelector(".pt-translate-lang-dropdown");
