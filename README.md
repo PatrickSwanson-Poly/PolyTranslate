@@ -25,7 +25,7 @@ PolyTranslate is designed so that **no translation data ever leaves your machine
 - Translation runs entirely in-browser via a WebAssembly (WASM) build of [Bergamot Translator](https://github.com/browsermt/bergamot-translator)
 - Language models are downloaded once during setup and stored locally in the `models/` directory
 - After setup, the extension works fully offline — no network requests during translation
-- The only network activity is the one-time model download when you run `polyt init` or `polyt add`
+- The only network activity is the one-time model download during setup (`./setup.sh init`) or when adding languages
 
 ## Installation
 
@@ -40,8 +40,14 @@ cd PolyTranslate
 
 Run the setup script to choose which languages you need. Each language pair is ~20-50 MB.
 
+**macOS / Linux:**
 ```bash
 ./setup.sh init
+```
+
+**Windows (PowerShell):**
+```powershell
+.\setup.ps1 init
 ```
 
 You'll see an interactive picker — enter the numbers of the languages you want, separated by spaces:
@@ -62,17 +68,21 @@ You'll see an interactive picker — enter the numbers of the languages you want
 
 This would install French, German, and Spanish. Type `all` to install every language (~1.5 GB), or `q` to cancel.
 
-### 3. Install the global CLI (recommended)
+The setup script will offer to install the `polyt` shortcut (recommended) at the end of init. If you skip it, you can always run it later:
 
-This lets you run `polyt` from anywhere instead of needing to be in the extension folder:
-
+**macOS / Linux:**
 ```bash
-sudo ln -sf "$(pwd)/setup.sh" /usr/local/bin/polyt
+./setup.sh link
 ```
 
-**Without this step, you'll need to `cd` into the PolyTranslate folder and use `./setup.sh` instead of `polyt` for all commands below.**
+**Windows (PowerShell):**
+```powershell
+.\setup.ps1 link
+```
 
-### 4. Load the extension
+On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it creates a `polyt.cmd` wrapper. Either way, you can then run `polyt` from anywhere. Without it, use `./setup.sh` or `.\setup.ps1` from the PolyTranslate folder.
+
+### 3. Load the extension
 
 1. Open `chrome://extensions` in Chrome
 2. Enable **Developer mode** (top-right toggle)
@@ -81,7 +91,7 @@ sudo ln -sf "$(pwd)/setup.sh" /usr/local/bin/polyt
 
 ## Managing Languages
 
-Use the `polyt` CLI (or `./setup.sh`) to manage installed translation models:
+Use the `polyt` CLI (or `./setup.sh` on macOS/Linux, `.\setup.ps1` on Windows) to manage installed translation models:
 
 | Command | Description |
 |---------|-------------|
@@ -90,6 +100,8 @@ Use the `polyt` CLI (or `./setup.sh`) to manage installed translation models:
 | `polyt update` | Re-download latest model versions for all installed languages |
 | `polyt remove` | Remove installed language models to free disk space |
 | `polyt status` | Show which models are installed and their sizes |
+| `polyt link` | Create the `polyt` shortcut in `/usr/local/bin` |
+| `polyt unlink` | Remove the `polyt` shortcut |
 
 After adding or removing languages, reload the extension in `chrome://extensions` and refresh any open Agent Studio tabs.
 
@@ -155,7 +167,8 @@ PolyTranslate/
   offscreen.js                   # Bergamot WASM engine + model loading
   model-registry.js              # Language pair → model file URL mapping
   styles.css                     # Injected styles for all UI components
-  setup.sh                       # CLI for downloading/managing language models
+  setup.sh                       # CLI for downloading/managing language models (macOS/Linux)
+  setup.ps1                      # CLI for downloading/managing language models (Windows)
   installed-languages.json       # Auto-generated list of installed languages
   bergamot-translator-worker.js  # Bergamot Emscripten glue code
   bergamot-translator-worker.wasm # Bergamot WASM binary (~5 MB)

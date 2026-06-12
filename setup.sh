@@ -2,6 +2,8 @@
 set -euo pipefail
  
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || echo "$0")")" && pwd)"
+SELF="$(basename "$0" .sh)"
+[[ "$SELF" == "setup" ]] && SELF="./setup.sh"
 MODELS_DIR="$SCRIPT_DIR/models"
 REGISTRY_URL="https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/translations-models/records?_limit=500"
 CDN="https://firefox-settings-attachments.cdn.mozilla.net"
@@ -201,7 +203,7 @@ print_status() {
         from_size=$(du -sh "$MODELS_DIR/en_${lang}" 2>/dev/null | cut -f1 || echo "?")
         printf "    $(green "✓") %-12s ↔ English  (%s + %s)\n" "$name" "$to_size" "$from_size"
       else
-        printf "    $(yellow "!") %-12s ↔ English  $(yellow "(incomplete — run polyt add to repair)")\n" "$name"
+        printf "    $(yellow "!") %-12s ↔ English  $(yellow "(incomplete — run $SELF add to repair)")\n" "$name"
       fi
     done
   fi
@@ -268,17 +270,50 @@ pick_languages() {
     return 1
   fi
 }
- 
+
 # ── Commands ──
- 
+
+create_polyt_link() {
+  local target="$SCRIPT_DIR/setup.sh"
+  local link_path="/usr/local/bin/polyt"
+
+  if [[ -e "$link_path" ]]; then
+    echo "  $(yellow "!") $link_path already exists — skipping."
+  elif ln -s "$target" "$link_path" 2>/dev/null; then
+    echo "  $(green "✓") Installed! You can now use $(bold "polyt") from anywhere."
+  elif sudo ln -s "$target" "$link_path"; then
+    echo "  $(green "✓") Installed! You can now use $(bold "polyt") from anywhere."
+  else
+    echo "  $(red "✗") Could not create symlink. You can do it manually:"
+    echo "      ln -s \"$target\" $link_path"
+  fi
+}
+
+cmd_link() {
+  create_polyt_link
+}
+
+print_banner() {
+  local g="\033[38;2;0;220;130m" b="\033[1m" r="\033[0m"
+  printf "${g}${b}"
+  cat <<'BANNER'
+
+   ____       _     _____                    _       _
+  |  _ \ ___ | |_  |_   _| __ __ _ _ __  ___| | __ _| |_ ___
+  | |_) / _ \| | | | | || '__/ _` | '_ \/ __| |/ _` | __/ _ \
+  |  __/ (_) | | |_| | || | | (_| | | | \__ \ | (_| | ||  __/
+  |_|   \___/|_|\__, |_||_|  \__,_|_| |_|___/_|\__,_|\__\___|
+                |___/
+BANNER
+  printf "${r}\n"
+}
+
 cmd_init() {
-  echo ""
-  echo "$(bold "PolyTranslate — Initial Setup")"
-  echo ""
+  print_banner
  
   if [[ -d "$MODELS_DIR" ]] && ls "$MODELS_DIR"/*/*.bin &>/dev/null 2>&1; then
-    echo "  Models directory already exists. Use $(bold "polyt add") to install more languages"
-    echo "  or $(bold "polyt update") to refresh existing models."
+    echo "  Models directory already exists. Use $(bold "$SELF add") to install more languages"
+    echo "  or $(bold "$SELF update") to refresh existing models."
     exit 1
   fi
  
@@ -307,17 +342,36 @@ cmd_init() {
   echo "  ────────────────────────────────"
   write_installed_languages
   echo "  $(green "Done!") $success languages installed. $fail failed."
-  echo "  Reload the extension in chrome://extensions to use them."
   echo ""
+
+  if [[ "$SELF" != "polyt" ]]; then
+    echo "  $(bold "Install shortcut?")"
+    echo "  Create $(bold "polyt") command so you can run $(bold "polyt add"), $(bold "polyt update"), etc."
+    echo "  from anywhere."
+    echo ""
+    printf "  Install polyt to /usr/local/bin? [Y/n] "
+    read -r answer </dev/tty
+    echo ""
+    if [[ "${answer:-Y}" =~ ^[Yy]$ ]]; then
+      create_polyt_link
+    fi
+  fi
 }
  
 cmd_add() {
-  echo ""
-  echo "$(bold "PolyTranslate — Add Languages")"
-  echo ""
- 
+  print_banner
+
+  local installed
+  installed=($(installed_langs))
+  if [[ ${#installed[@]} -eq ${#NON_EN_LANGS[@]} ]]; then
+    echo "  $(green "✓") All ${#NON_EN_LANGS[@]} languages are already installed."
+    echo "  Use $(bold "$SELF update") to refresh models or $(bold "$SELF remove") to free up space."
+    echo ""
+    exit 0
+  fi
+
   print_status
- 
+
   echo "  Select additional languages to install:"
  
   if ! pick_languages; then
@@ -361,7 +415,7 @@ cmd_update() {
   existing=$(installed_langs)
  
   if [[ -z "$existing" ]]; then
-    echo "  No models installed. Run $(bold "polyt init") first."
+    echo "  No models installed. Run $(bold "$SELF init") first."
     exit 1
   fi
  
@@ -400,9 +454,7 @@ cmd_update() {
 }
  
 cmd_remove() {
-  echo ""
-  echo "$(bold "PolyTranslate — Remove Languages")"
-  echo ""
+  print_banner
  
   local existing
   existing=$(installed_langs)
@@ -477,12 +529,29 @@ cmd_status() {
   echo ""
   print_status
 }
- 
+
+cmd_unlink() {
+  local link_path="/usr/local/bin/polyt"
+
+  if [[ ! -e "$link_path" ]]; then
+    echo "  $(yellow "!") $link_path does not exist — nothing to remove."
+    return
+  fi
+
+  if rm "$link_path" 2>/dev/null || sudo rm "$link_path"; then
+    echo "  $(green "✓") Removed $link_path"
+  else
+    echo "  $(red "✗") Could not remove symlink. You can do it manually:"
+    echo "      rm $link_path"
+  fi
+}
+
 cmd_help() {
-  echo ""
-  echo "$(bold "PolyTranslate Model Setup")"
-  echo ""
-  echo "  Usage: polyt <command>"
+  print_banner
+  echo "  Usage: $SELF <command>"
+  if [[ "$SELF" != "./setup.sh" ]]; then
+    echo "         ./setup.sh <command>"
+  fi
   echo ""
   echo "  Commands:"
   echo "    init     First-time setup — choose and download language models"
@@ -490,13 +559,15 @@ cmd_help() {
   echo "    update   Re-download latest versions of installed models"
   echo "    remove   Remove installed language models"
   echo "    status   Show which models are installed"
+  echo "    link     Create the polyt shortcut in /usr/local/bin"
+  echo "    unlink   Remove the polyt shortcut from /usr/local/bin"
   echo "    help     Show this message"
   echo ""
   echo "  Examples:"
-  echo "    polyt init          # Interactive first-time setup"
-  echo "    polyt add           # Add more languages later"
-  echo "    polyt update        # Refresh all installed models"
-  echo "    polyt remove        # Remove languages you don't need"
+  echo "    $SELF init          # Interactive first-time setup"
+  echo "    $SELF add           # Add more languages later"
+  echo "    $SELF update        # Refresh all installed models"
+  echo "    $SELF remove        # Remove languages you don't need"
   echo ""
 }
  
@@ -510,6 +581,8 @@ case "$command" in
   update) cmd_update ;;
   remove) cmd_remove ;;
   status) cmd_status ;;
+  link)   cmd_link   ;;
+  unlink) cmd_unlink ;;
   help)   cmd_help   ;;
   *)
     echo "Unknown command: $command"
