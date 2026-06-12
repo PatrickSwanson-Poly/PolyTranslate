@@ -3,8 +3,6 @@
 
   console.log("[PolyTranslate] Content script loaded on", window.location.href);
 
-  const TRANSLATE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>`;
-
   const LANG_ABBR = {
     es: "ES", en: "EN", zh: "ZH", ja: "JA", ko: "KO", pt: "PT",
     ar: "AR", fr: "FR", de: "DE", it: "IT", nl: "NL", ru: "RU",
@@ -15,11 +13,19 @@
 
   let conversationTranslateActive = false;
   const originalTexts = new WeakMap();
+  const TRANSCRIPT_ICON_OK = chrome.runtime.getURL("icons/icon48_no_background.png");
   const LOGO_OK = chrome.runtime.getURL("icons/icon48.png");
   const LOGO_ERR = chrome.runtime.getURL("icons/icon48_err.png");
 
+  function transcriptIconHtml(size = 16) {
+    return `<img src="${TRANSCRIPT_ICON_OK}" width="${size}" height="${size}" alt="">`;
+  }
+
   function setErrorState(on) {
-    document.querySelectorAll(".pt-translate-toggle img, .pt-input-circle-btn img").forEach((img) => {
+    document.querySelectorAll(".pt-translate-toggle img").forEach((img) => {
+      img.src = on ? LOGO_ERR : TRANSCRIPT_ICON_OK;
+    });
+    document.querySelectorAll(".pt-input-circle-btn img").forEach((img) => {
       img.src = on ? LOGO_ERR : LOGO_OK;
     });
   }
@@ -91,35 +97,44 @@
     });
   }
 
+  function translateTooltipLabel() {
+    return navigator.platform.includes("Mac")
+      ? "Translate ⌘⇧Y"
+      : "Translate Ctrl+Shift+Y";
+  }
+
   function setToggleIcon(btn, html) {
     const icon = btn.querySelector(".pt-translate-toggle-icon");
     if (icon) icon.innerHTML = html;
   }
 
   function attachTranslateTooltip(btn) {
-    if (btn.querySelector(".pt-translate-tooltip")) return;
-
-    const tooltip = document.createElement("span");
-    tooltip.className = "pt-translate-tooltip";
-    tooltip.setAttribute("aria-hidden", "true");
-    tooltip.innerHTML =
-      '<span class="pt-translate-tooltip-label">Translate</span>' +
-      '<svg class="pt-translate-tooltip-caret" fill="#161617" aria-hidden="true" width="10" height="10" viewBox="0 0 10 10">' +
-      '<path stroke="none" d="M0,0 H10 L6.25,3.75 Q5,5 3.75,3.75 Z"></path></svg>';
-    btn.appendChild(tooltip);
-    btn.addEventListener("mouseenter", () => {
-      tooltip.classList.add("pt-translate-tooltip-visible");
-    });
-    btn.addEventListener("mouseleave", () => {
-      tooltip.classList.remove("pt-translate-tooltip-visible");
-    });
+    let tooltip = btn.querySelector(".pt-translate-tooltip");
+    if (!tooltip) {
+      tooltip = document.createElement("span");
+      tooltip.className = "pt-translate-tooltip";
+      tooltip.setAttribute("aria-hidden", "true");
+      tooltip.innerHTML =
+        '<span class="pt-translate-tooltip-label"></span>' +
+        '<svg class="pt-translate-tooltip-caret" fill="#161617" aria-hidden="true" width="10" height="10" viewBox="0 0 10 10">' +
+        '<path stroke="none" d="M0,0 H10 L6.25,3.75 Q5,5 3.75,3.75 Z"></path></svg>';
+      btn.appendChild(tooltip);
+      btn.addEventListener("mouseenter", () => {
+        tooltip.classList.add("pt-translate-tooltip-visible");
+      });
+      btn.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("pt-translate-tooltip-visible");
+      });
+    }
+    const label = tooltip.querySelector(".pt-translate-tooltip-label");
+    if (label) label.textContent = translateTooltipLabel();
   }
 
   function setTranslateToggleIdle() {
     setTranslateSplitActive(false);
     document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
       btn.classList.remove("pt-active");
-      setToggleIcon(btn, TRANSLATE_ICON);
+      setToggleIcon(btn, transcriptIconHtml());
       attachTranslateTooltip(btn);
       btn.setAttribute("aria-label", "Translate transcript");
     });
@@ -136,7 +151,7 @@
     setTranslateSplitActive(true);
     document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
       btn.classList.add("pt-active");
-      setToggleIcon(btn, TRANSLATE_ICON);
+      setToggleIcon(btn, transcriptIconHtml());
       attachTranslateTooltip(btn);
       btn.setAttribute("aria-label", "Translation active");
     });
@@ -426,7 +441,7 @@
     const toggleBtn = document.createElement("button");
     toggleBtn.className = "pt-translate-toggle";
     toggleBtn.setAttribute("aria-label", "Translate transcript");
-    toggleBtn.innerHTML = `<span class="pt-translate-toggle-icon">${TRANSLATE_ICON}</span>`;
+    toggleBtn.innerHTML = `<span class="pt-translate-toggle-icon">${transcriptIconHtml()}</span>`;
     attachTranslateTooltip(toggleBtn);
     toggleBtn.addEventListener("click", toggleConversationTranslation);
 
@@ -804,9 +819,7 @@
     const logoUrl = chrome.runtime.getURL("icons/icon48.png");
     const circleBtn = document.createElement("button");
     circleBtn.className = "pt-input-circle-btn";
-    circleBtn.setAttribute("data-pt-tooltip",
-      navigator.platform.includes("Mac") ? "Translate ⌘⇧Y" : "Translate Ctrl+Shift+Y"
-    );
+    circleBtn.setAttribute("data-pt-tooltip", translateTooltipLabel());
     circleBtn.innerHTML = `<img src="${logoUrl}" width="20" height="20">`;
 
     const popup = document.createElement("div");

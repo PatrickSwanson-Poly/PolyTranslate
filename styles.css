@@ -130,9 +130,10 @@
   justify-content: center;
 }
 
-.pt-translate-toggle-icon > svg {
-  width: 14px;
-  height: 14px;
+.pt-translate-toggle-icon > svg,
+.pt-translate-toggle-icon > img {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
@@ -152,19 +153,24 @@
   position: absolute;
   left: 50%;
   bottom: calc(100% + 4px);
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.12s ease-out;
+  transform: translateX(-50%) perspective(500px) rotateX(-14deg) translateY(-3px);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 2147483647;
   white-space: nowrap;
+  backface-visibility: hidden;
 }
 
 .pt-translate-tooltip-visible {
   opacity: 1;
+  transform: translateX(-50%) perspective(500px) rotateX(0deg) translateY(0);
 }
 
 .pt-translate-tooltip-label {
