@@ -7,7 +7,7 @@ A privacy-first Chrome extension that adds offline, inline translation to PolyAI
 ### Conversation Transcript Translation
 Translate completed conversation transcripts inline. Click the **PolyTranslate** button in the sidebar, select source/target languages, and hit **Translate**. Only messages that actually changed get a language badge. Toggle translation off to restore the originals.
 
-**Keyboard shortcut:** `Cmd+Shift+Y` (Mac) / `Ctrl+Shift+Y` (Windows/Linux)
+**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
 <p align="center">
   <img src="screenshots/post_translate_conv_review.png" alt="Call review translator">
