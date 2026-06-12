@@ -157,11 +157,6 @@
     });
   }
 
-  function updateBadgeContent() {
-    const badge = langAbbr(targetLang);
-    document.documentElement.style.setProperty("--pt-badge", `"${badge}"`);
-  }
-
   // ── Feature 1: Transcript translate button (new UI) ──
 
   function isVisible(el) {
@@ -465,7 +460,6 @@
       sourceLang = e.target.value;
       saveSetting("pt_source", sourceLang);
       updateLangLabel();
-      updateBadgeContent();
       if (conversationTranslateActive) {
         await retranslateConversation();
       }
@@ -482,7 +476,6 @@
       targetLang = e.target.value;
       saveSetting("pt_target", targetLang);
       updateLangLabel();
-      updateBadgeContent();
       if (conversationTranslateActive) {
         await retranslateConversation();
       }
@@ -613,20 +606,16 @@
       if (!conversationTranslateActive) return;
 
       const spans = getConversationTurnSpans().filter(
-        (s) => !originalTexts.has(s) && !s.classList.contains("pt-translated")
+        (s) => !s.classList.contains("pt-translated")
       );
       if (spans.length === 0) return;
 
-      const texts = spans.map((s) => s.textContent);
-      spans.forEach((s) => originalTexts.set(s, s.textContent));
+      const texts = spans.map((s) => getSpanPlainText(s).trim());
+      spans.forEach((s, i) => originalTexts.set(s, texts[i]));
 
       try {
         const translated = await translateBatch(texts, sourceLang, targetLang);
-        spans.forEach((span, i) => {
-          if (translated[i].trim().toLowerCase() === texts[i].trim().toLowerCase()) return;
-          span.textContent = translated[i];
-          span.classList.add("pt-translated");
-        });
+        applyTurnTranslations(spans, texts, translated);
         setErrorState(false);
       } catch (err) {
         console.error("[PolyTranslate] Live translate failed:", err);
@@ -696,7 +685,7 @@
 
     function addSpan(el) {
       if (!el || seen.has(el)) return;
-      const text = el.textContent.trim();
+      const text = getSpanPlainText(el).trim();
       if (text.length === 0) return;
       if (/^[\w]+_function$/.test(text) || /^fx\s/.test(text)) return;
       seen.add(el);
@@ -739,20 +728,71 @@
     return spans;
   }
 
+  function getSpanPlainText(span) {
+    if (originalTexts.has(span)) return originalTexts.get(span);
+    const primary =
+      span.querySelector(".pt-turn-original") ||
+      span.querySelector(".pt-turn-primary");
+    if (primary) return primary.textContent;
+    return span.textContent;
+  }
+
+  function translationNotNeeded(original, translated) {
+    if (sourceLang === targetLang) return true;
+    return translated.trim().toLowerCase() === original.trim().toLowerCase();
+  }
+
+  function renderTurnTranslation(span, original, translated) {
+    span.textContent = "";
+    span.classList.remove("pt-no-translation");
+    span.classList.add("pt-translated");
+
+    const wrap = document.createElement("span");
+    wrap.className = "pt-turn-translation";
+
+    if (translationNotNeeded(original, translated)) {
+      wrap.classList.add("pt-turn-unchanged");
+      const primary = document.createElement("span");
+      primary.className = "pt-turn-primary";
+      primary.textContent = original;
+      const note = document.createElement("span");
+      note.className = "pt-turn-note";
+      note.textContent = "No translation needed";
+      wrap.appendChild(primary);
+      wrap.appendChild(note);
+      span.classList.add("pt-no-translation");
+    } else {
+      const orig = document.createElement("span");
+      orig.className = "pt-turn-original";
+      orig.textContent = original;
+      const trans = document.createElement("span");
+      trans.className = "pt-turn-translated";
+      trans.textContent = translated;
+      wrap.appendChild(orig);
+      wrap.appendChild(trans);
+    }
+
+    span.appendChild(wrap);
+  }
+
+  function applyTurnTranslations(spans, texts, translated) {
+    spans.forEach((span, i) => {
+      const original = texts[i];
+      originalTexts.set(span, original);
+      renderTurnTranslation(span, original, translated[i]);
+    });
+  }
+
   async function translateConversationTurns() {
     const spans = getConversationTurnSpans();
     if (spans.length === 0) return;
 
-    const texts = spans.map((s) => s.textContent);
-    spans.forEach((s) => originalTexts.set(s, s.textContent));
+    const texts = spans.map((s) => getSpanPlainText(s).trim());
+    spans.forEach((s, i) => originalTexts.set(s, texts[i]));
 
     try {
       const translated = await translateBatch(texts, sourceLang, targetLang);
-      spans.forEach((span, i) => {
-        if (translated[i].trim().toLowerCase() === texts[i].trim().toLowerCase()) return;
-        span.textContent = translated[i];
-        span.classList.add("pt-translated");
-      });
+      applyTurnTranslations(spans, texts, translated);
       setErrorState(false);
     } catch (err) {
       console.error("[PolyTranslate] Conversation translation failed:", err);
@@ -764,9 +804,9 @@
     const spans = getConversationTurnSpans();
     spans.forEach((span) => {
       const original = originalTexts.get(span);
-      if (original) {
+      if (original !== undefined) {
         span.textContent = original;
-        span.classList.remove("pt-translated", "pt-has-original");
+        span.classList.remove("pt-translated", "pt-no-translation", "pt-has-original");
       }
     });
   }
@@ -933,7 +973,6 @@
       // File missing — show all languages
     }
 
-    updateBadgeContent();
     createTranscriptTranslateButton();
     createInputTranslateButton();
   }
