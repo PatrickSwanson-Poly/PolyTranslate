@@ -679,51 +679,95 @@
     }
   }
 
+  function isPtTranslationPart(el) {
+    return Boolean(
+      el.classList.contains("pt-turn-translation") ||
+      el.classList.contains("pt-turn-original") ||
+      el.classList.contains("pt-turn-translated") ||
+      el.classList.contains("pt-turn-primary") ||
+      el.classList.contains("pt-turn-note")
+    );
+  }
+
+  function isSpeakerLabelText(text) {
+    return /^(agent|caller|user|assistant)$/i.test(text.trim());
+  }
+
+  function isNonMessageText(text) {
+    const trimmed = text.trim();
+    if (!trimmed) return true;
+    if (isSpeakerLabelText(trimmed)) return true;
+    if (/^[\w]+_function$/.test(trimmed) || /^fx\s/.test(trimmed)) return true;
+    if (/^Caller ID:/i.test(trimmed)) return true;
+    if (/^Set skill /i.test(trimmed)) return true;
+    if (/^Request \d+$/i.test(trimmed)) return true;
+    if (/^Matched topic/i.test(trimmed)) return true;
+    return false;
+  }
+
+  function isAgentCallerUtteranceButton(btn) {
+    if (!btn) return false;
+    const testId = btn.getAttribute("data-test-id") || "";
+    if (testId.startsWith("function-call-")) return false;
+    return [...btn.querySelectorAll("p")].some((p) =>
+      /^(agent|caller)$/i.test(p.textContent.trim())
+    );
+  }
+
+  function isAgentCallerUtteranceElement(el) {
+    const btn = el.closest("button.select-text, button[data-dd-privacy='mask']");
+    if (!btn) return false;
+    if (el.closest('[data-test-id^="function-call-"]')) return false;
+    return isAgentCallerUtteranceButton(btn);
+  }
+
+  function findTurnMessageEls(turn) {
+    const selectors = [
+      "[data-test-id='chat-message-text']",
+      "[class*='MessageText']",
+      "[class*='message-text']",
+      "[class*='turn-text']",
+      "span.whitespace-pre-wrap",
+      "span[class*='text-body-regular']",
+    ];
+    const candidates = [];
+    const seen = new Set();
+
+    for (const sel of selectors) {
+      for (const el of turn.querySelectorAll(sel)) {
+        if (isPtTranslationPart(el) || seen.has(el)) continue;
+        seen.add(el);
+        candidates.push(el);
+      }
+    }
+
+    const valid = candidates.filter((el) => !isNonMessageText(getSpanPlainText(el)));
+    return valid.filter(
+      (el) => !valid.some((other) => other !== el && el.contains(other))
+    );
+  }
+
   function getConversationTurnSpans() {
     const spans = [];
     const seen = new Set();
 
     function addSpan(el) {
       if (!el || seen.has(el)) return;
+      if (!isAgentCallerUtteranceElement(el)) return;
       const text = getSpanPlainText(el).trim();
-      if (text.length === 0) return;
-      if (/^[\w]+_function$/.test(text) || /^fx\s/.test(text)) return;
+      if (isNonMessageText(text)) return;
       seen.add(el);
       spans.push(el);
     }
 
-    document.querySelectorAll("[data-turn-idx]").forEach((turn) => {
-      const selectors = [
-        "span.whitespace-pre-wrap",
-        "[class*='MessageText']",
-        "[class*='message-text']",
-        "[class*='turn-text']",
-        "p",
-      ];
-      for (const sel of selectors) {
-        turn.querySelectorAll(sel).forEach(addSpan);
-      }
-    });
-
-    if (spans.length === 0) {
-      const roots = getTranscriptPanels();
-      const scope = roots[0] || document;
-      scope.querySelectorAll("[data-test-id='chat-message-text']").forEach((bubble) => {
-        const textEl =
-          bubble.querySelector("[class*='MessageText']") ||
-          bubble.querySelector("div");
-        addSpan(textEl);
+    document
+      .querySelectorAll("button.select-text, button[data-dd-privacy='mask']")
+      .forEach((btn) => {
+        if (!isAgentCallerUtteranceButton(btn)) return;
+        for (const el of findTurnMessageEls(btn)) {
+          addSpan(el);
+        }
       });
-    }
-
-    document.querySelectorAll('[data-test-id="chatMessages"] [data-test-id="chat-message-text"]').forEach((bubble) => {
-      const textEl =
-        bubble.querySelector("[class*='MessageText']") ||
-        bubble.querySelector("div.gzGCB") ||
-        bubble.querySelector(".sc-erUUZj") ||
-        bubble.querySelector("div");
-      addSpan(textEl);
-    });
 
     return spans;
   }
@@ -801,7 +845,9 @@
   }
 
   function restoreConversationTurns() {
-    const spans = getConversationTurnSpans();
+    const spans = new Set(getConversationTurnSpans());
+    document.querySelectorAll(".pt-translated").forEach((span) => spans.add(span));
+
     spans.forEach((span) => {
       const original = originalTexts.get(span);
       if (original !== undefined) {
