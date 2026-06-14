@@ -367,8 +367,10 @@
 
   function removeTranscriptTranslateButton() {
     document.querySelectorAll(".pt-transcript-toolbar").forEach((el) => el.remove());
-    document.querySelectorAll(".pt-translate-split:not(.pt-chat-translate-split)").forEach((el) => el.remove());
-    document.querySelectorAll(".pt-translate-lang-dropdown").forEach((el) => el.remove());
+    document.querySelectorAll(".pt-translate-split:not(.pt-chat-translate-split)").forEach((el) => {
+      if (el._ptDropdown) el._ptDropdown.remove();
+      el.remove();
+    });
   }
 
   let langDropdownAnchor = null;
@@ -397,11 +399,15 @@
   }
 
   function closeLangDropdown() {
-    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
-    if (dropdown) dropdown.classList.remove("pt-translate-lang-dropdown-visible");
+    document.querySelectorAll(".pt-translate-lang-dropdown").forEach((d) => {
+      d.classList.remove("pt-translate-lang-dropdown-visible");
+    });
     langDropdownAnchor = null;
     document.querySelectorAll(".pt-translate-split").forEach((split) => {
       split.classList.remove("pt-lang-open");
+      if (split._ptDropdown) {
+        split._ptDropdown.classList.remove("pt-translate-lang-dropdown-visible");
+      }
     });
   }
 
@@ -1108,15 +1114,16 @@
   document.addEventListener("keydown", handleTranslateShortcut, true);
 
   document.addEventListener("click", (e) => {
-    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
+    const dropdowns = document.querySelectorAll(".pt-translate-lang-dropdown");
+    const anyVisible = [...dropdowns].some((d) =>
+      d.classList.contains("pt-translate-lang-dropdown-visible")
+    );
+    if (!anyVisible) return;
+    const clickedInsideDropdown = [...dropdowns].some((d) => d.contains(e.target));
     const clickedInsideSplit = [...document.querySelectorAll(".pt-translate-split")].some(
       (split) => split.contains(e.target)
     );
-    if (
-      dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
-      !dropdown.contains(e.target) &&
-      !clickedInsideSplit
-    ) {
+    if (!clickedInsideDropdown && !clickedInsideSplit) {
       closeLangDropdown();
     }
   });
@@ -1124,11 +1131,10 @@
   window.addEventListener(
     "scroll",
     () => {
-      const dropdown = document.querySelector(".pt-translate-lang-dropdown");
-      if (
-        dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
-        langDropdownAnchor
-      ) {
+      const dropdown = document.querySelector(
+        ".pt-translate-lang-dropdown.pt-translate-lang-dropdown-visible"
+      );
+      if (dropdown && langDropdownAnchor) {
         positionLangDropdown(dropdown, langDropdownAnchor);
       }
     },
@@ -1136,11 +1142,10 @@
   );
 
   window.addEventListener("resize", () => {
-    const dropdown = document.querySelector(".pt-translate-lang-dropdown");
-    if (
-      dropdown?.classList.contains("pt-translate-lang-dropdown-visible") &&
-      langDropdownAnchor
-    ) {
+    const dropdown = document.querySelector(
+      ".pt-translate-lang-dropdown.pt-translate-lang-dropdown-visible"
+    );
+    if (dropdown && langDropdownAnchor) {
       positionLangDropdown(dropdown, langDropdownAnchor);
     }
   });
