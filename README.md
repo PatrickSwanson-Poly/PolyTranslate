@@ -9,8 +9,6 @@ Translate completed conversation transcripts with side-by-side original and tran
 
 **Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
-**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
-
 <p align="center">
   <img src="screenshots/post_translate_conv_review.png" alt="Call review translator">
 </p>
@@ -26,8 +24,6 @@ A translate button sits above the send arrow in the chat text area. Click it to 
 
 ### Live Chat Translation
 Translate incoming agent messages in real time during a chat session. Click the **PolyTranslate** button in the chat panel header (next to the review/settings icons). Translated messages show inline with a language badge (e.g. **EN**). The button turns gray while translation is active.
-
-**Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
 **Keyboard shortcut:** `Cmd+Shift+U` (Mac) / `Ctrl+Shift+U` (Windows/Linux)
 
