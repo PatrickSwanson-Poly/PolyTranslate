@@ -940,12 +940,11 @@
     anchor.addEventListener("mousedown", (e) => e.stopPropagation());
     anchor.addEventListener("click", (e) => e.stopPropagation());
 
-    const logoUrl = chrome.runtime.getURL("icons/icon48_send.png");
     const circleBtn = document.createElement("button");
     circleBtn.className = "pt-input-circle-btn";
     const inputShortcut = navigator.platform.includes("Mac") ? "Translate ⌘⇧Y" : "Translate Ctrl+Shift+Y";
     circleBtn.setAttribute("data-pt-tooltip", inputShortcut);
-    circleBtn.innerHTML = `<img src="${logoUrl}" width="20" height="20">`;
+    circleBtn.innerHTML = `<img src="${LOGO_OK}" width="20" height="20" alt="Translate">`;
 
     const popup = document.createElement("div");
     popup.className = "pt-input-popup";
@@ -1009,8 +1008,7 @@
   function resetInputBtn() {
     const btn = document.querySelector(".pt-input-circle-btn");
     if (btn) {
-      const logoUrl = chrome.runtime.getURL("icons/icon48_send.png");
-      btn.innerHTML = `<img src="${logoUrl}" width="20" height="20">`;
+      btn.innerHTML = `<img src="${LOGO_OK}" width="20" height="20" alt="Translate">`;
     }
   }
 

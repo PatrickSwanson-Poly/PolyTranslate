@@ -84,19 +84,21 @@ You'll see an interactive picker — enter the numbers of the languages you want
 
 This would install French, German, and Spanish. Type `all` to install every language (~1.5 GB), or `q` to cancel.
 
-The setup script will offer to install the `polyt` shortcut (recommended) at the end of init. If you skip it, you can always run it later:
+The setup script will offer to install the `polyt` shortcut (recommended) at the end of init. If you skip it, you can always run it later from the PolyTranslate directory:
 
 **macOS / Linux:**
 ```bash
+cd path/to/PolyTranslate
 ./setup.sh link
 ```
 
 **Windows (PowerShell):**
 ```powershell
+cd path\to\PolyTranslate
 .\setup.ps1 link
 ```
 
-On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it creates a `polyt.cmd` wrapper. Either way, you can then run `polyt` from anywhere. Without it, use `./setup.sh` or `.\setup.ps1` from the PolyTranslate folder.
+On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it creates a `polyt.cmd` wrapper. Either way, you can then run `polyt` from anywhere. Without the shortcut, you must run `./setup.sh` or `.\setup.ps1` from inside the PolyTranslate directory.
 
 ### 3. Load the extension
 
@@ -116,10 +118,14 @@ Use the `polyt` CLI (or `./setup.sh` on macOS/Linux, `.\setup.ps1` on Windows) t
 | `polyt update` | Re-download latest model versions for all installed languages |
 | `polyt remove` | Remove installed language models to free disk space |
 | `polyt status` | Show which models are installed and their sizes |
+| `polyt pull` | Pull latest changes from git and open Chrome to reload |
+| `polyt reset` | Hard reset — delete all models and config for a fresh start |
 | `polyt link` | Create the `polyt` shortcut in `/usr/local/bin` |
 | `polyt unlink` | Remove the `polyt` shortcut |
 
 After adding or removing languages, reload the extension in `chrome://extensions` and refresh any open Agent Studio tabs.
+
+> **Windows note:** `polyt pull` and `polyt reset` are not yet available in the PowerShell script (`setup.ps1`). Windows users can pull manually with `git pull` and reload at `chrome://extensions`.
 
 ### Supported Languages
 
@@ -164,10 +170,10 @@ Offscreen Document
 
 ## Updating
 
-After pulling new changes:
+Run `polyt pull` to fetch the latest code and open Chrome's extensions page for a quick reload. Then:
 
-1. Run `polyt update` if models have been refreshed upstream
-2. Go to `chrome://extensions` and click the reload icon on the PolyTranslate card
+1. Click the reload icon on the PolyTranslate card in `chrome://extensions`
+2. Run `polyt update` if models have been refreshed upstream
 3. **Refresh any open Agent Studio tabs** — required to avoid "Extension context invalidated" errors
 
 ## File Structure

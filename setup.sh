@@ -530,6 +530,61 @@ cmd_status() {
   print_status
 }
 
+cmd_reset() {
+  print_banner
+
+  echo "  $(red "⚠  Hard Reset")"
+  echo ""
+  echo "  This will:"
+  echo "    • Delete all downloaded models ($MODELS_DIR)"
+  echo "    • Remove installed-languages.json"
+  echo ""
+
+  printf "  Are you sure? [y/N] "
+  read -r confirm
+  if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "  Cancelled."
+    exit 0
+  fi
+
+  rm -rf "$MODELS_DIR"
+  rm -f "$SCRIPT_DIR/installed-languages.json"
+
+  echo ""
+  echo "  $(green "✓") All models and language config removed."
+  echo "  Run $(bold "$SELF init") to set up from scratch."
+  echo ""
+}
+
+cmd_pull() {
+  print_banner
+
+  echo "  Pulling latest changes..."
+  echo ""
+
+  if ! git -C "$SCRIPT_DIR" pull; then
+    echo ""
+    echo "  $(red "✗") git pull failed."
+    exit 1
+  fi
+
+  echo ""
+  echo "  $(green "✓") Code updated."
+  echo "  Opening chrome://extensions — click the reload button on PolyTranslate."
+  echo ""
+
+  if [[ "$(uname)" == "Darwin" ]]; then
+    open -a "Google Chrome" "chrome://extensions"
+  elif command -v xdg-open &>/dev/null; then
+    xdg-open "chrome://extensions"
+  elif command -v wslview &>/dev/null; then
+    wslview "chrome://extensions"
+  else
+    echo "  $(yellow "!") Could not open Chrome automatically."
+    echo "  Go to chrome://extensions and reload PolyTranslate."
+  fi
+}
+
 cmd_unlink() {
   local link_path="/usr/local/bin/polyt"
 
@@ -559,6 +614,8 @@ cmd_help() {
   echo "    update   Re-download latest versions of installed models"
   echo "    remove   Remove installed language models"
   echo "    status   Show which models are installed"
+  echo "    pull     Pull latest changes and open Chrome to reload"
+  echo "    reset    Hard reset — delete all models and config"
   echo "    link     Create the polyt shortcut in /usr/local/bin"
   echo "    unlink   Remove the polyt shortcut from /usr/local/bin"
   echo "    help     Show this message"
@@ -581,6 +638,8 @@ case "$command" in
   update) cmd_update ;;
   remove) cmd_remove ;;
   status) cmd_status ;;
+  pull)   cmd_pull   ;;
+  reset)  cmd_reset  ;;
   link)   cmd_link   ;;
   unlink) cmd_unlink ;;
   help)   cmd_help   ;;
