@@ -14,7 +14,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.poly.ai/*"],
+      "matches": ["https://*.poly.ai/*", "https://*.polyai.app/*"],
       "js": ["config.js", "translate.js", "content.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
@@ -34,7 +34,7 @@
         "models/*",
         "installed-languages.json"
       ],
-      "matches": ["https://*.poly.ai/*"]
+      "matches": ["https://*.poly.ai/*", "https://*.polyai.app/*"]
     }
   ]
 }

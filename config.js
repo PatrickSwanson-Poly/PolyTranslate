@@ -8,6 +8,7 @@ const POLYTRANSLATE_CONFIG = {
 const PT_LANGUAGES = [
   { code: "ar", name: "Arabic" },
   { code: "zh", name: "Chinese" },
+  { code: "hr", name: "Croatian" },
   { code: "da", name: "Danish" },
   { code: "nl", name: "Dutch" },
   { code: "en", name: "English" },

@@ -11,7 +11,7 @@ const BW_ICONS = {
 };
 
 function updateIcon(tabId, url) {
-  const isEligible = url && url.includes(".poly.ai");
+  const isEligible = url && (url.includes(".poly.ai") || url.includes(".polyai.app"));
   chrome.action.setIcon({
     tabId,
     path: isEligible ? COLOR_ICONS : BW_ICONS,

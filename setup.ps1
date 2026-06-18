@@ -16,17 +16,17 @@ $CDN = 'https://firefox-settings-attachments.cdn.mozilla.net'
 
 # ── Language definitions ──
 
-$NonEnLangs = @('ar','zh','da','nl','fr','de','el','he','hi','it','ja','ko','no','pl','pt','ro','ru','sr','es','sv','th','uk','vi')
+$NonEnLangs = @('ar','zh','hr','da','nl','fr','de','el','he','hi','it','ja','ko','no','pl','pt','ro','ru','sr','es','sv','th','uk','vi')
 
 $LangNames = @{
-    ar='Arabic'; zh='Chinese'; da='Danish'; nl='Dutch'; en='English'; fr='French'
+    ar='Arabic'; zh='Chinese'; hr='Croatian'; da='Danish'; nl='Dutch'; en='English'; fr='French'
     de='German'; el='Greek'; he='Hebrew'; hi='Hindi'; it='Italian'; ja='Japanese'
     ko='Korean'; no='Norwegian'; pl='Polish'; pt='Portuguese'; ro='Romanian'; ru='Russian'
     sr='Serbian'; es='Spanish'; sv='Swedish'; th='Thai'; uk='Ukrainian'; vi='Vietnamese'
 }
 
 $BergCodes = @{
-    ar='ar'; zh='zh-Hans'; da='da'; nl='nl'; en='en'; fr='fr'
+    ar='ar'; zh='zh-Hans'; hr='hr'; da='da'; nl='nl'; en='en'; fr='fr'
     de='de'; el='el'; he='he'; hi='hi'; it='it'; ja='ja'
     ko='ko'; no='nb'; pl='pl'; pt='pt'; ro='ro'; ru='ru'
     sr='sr'; es='es'; sv='sv'; th='th'; uk='uk'; vi='vi'
@@ -230,7 +230,7 @@ function Pick-Languages {
     Write-Host ''
 
     $total = $NonEnLangs.Count
-    $cols = 4
+    $cols = 3
     $rows = [Math]::Ceiling($total / $cols)
 
     for ($row = 0; $row -lt $rows; $row++) {

@@ -1,6 +1,6 @@
 # <img src="icons/icon48.png" alt="" width="32" /> PolyTranslate
 
-A privacy-first Chrome extension that adds offline, inline translation to PolyAI Agent Studio. All translation happens locally on your machine using [Bergamot](https://github.com/browsermt/bergamot-translator) — the same neural translation engine that powers Firefox Translate. No text ever leaves your device.
+A privacy-first Chrome extension that adds offline, inline translation to PolyAI Agent Studio and Jupiter (`*.poly.ai` and `*.polyai.app`). All translation happens locally on your machine using [Bergamot](https://github.com/browsermt/bergamot-translator) — the same neural translation engine that powers Firefox Translate. No text ever leaves your device.
 
 ## Features
 
@@ -32,7 +32,7 @@ Translate incoming agent messages in real time during a chat session. Click the 
 > </p>
 
 ### Adaptive Extension Icon
-The toolbar icon shows the full-color PolyTranslate logo on `*.poly.ai` pages and switches to a greyed-out version on all other sites.
+The toolbar icon shows the full-color PolyTranslate logo on `*.poly.ai` and `*.polyai.app` pages and switches to a greyed-out version on all other sites.
 
 ## Privacy
 
@@ -71,15 +71,17 @@ You'll see an interactive picker — enter the numbers of the languages you want
 ```
   Available languages:
 
-    1) Arabic                7) Greek                13) Norwegian            19) Spanish       
-    2) Chinese               8) Hebrew               14) Polish               20) Swedish       
-    3) Danish                9) Hindi                15) Portuguese           21) Thai          
-    4) Dutch                10) Italian              16) Romanian             22) Ukrainian     
-    5) French               11) Japanese             17) Russian              23) Vietnamese    
-    6) German               12) Korean               18) Serbian       
+    1) Arabic               9) Hebrew              17) Romanian
+    2) Chinese             10) Hindi               18) Russian
+    3) Croatian            11) Italian             19) Serbian
+    4) Danish              12) Japanese            20) Spanish
+    5) Dutch               13) Korean              21) Swedish
+    6) French              14) Norwegian           22) Thai
+    7) German              15) Polish              23) Ukrainian
+    8) Greek               16) Portuguese          24) Vietnamese
 
   Enter numbers separated by spaces, all for everything, or q to cancel:
-  > 5 6 19
+  > 6 7 20
 ```
 
 This would install French, German, and Spanish. Type `all` to install every language (~1.5 GB), or `q` to cancel.
@@ -105,7 +107,7 @@ On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it c
 1. Open `chrome://extensions` in Chrome
 2. Enable **Developer mode** (top-right toggle)
 3. Click **Load unpacked** and select the `PolyTranslate` folder
-4. Navigate to any Agent Studio page on `studio.us.poly.ai`
+4. Navigate to any Agent Studio page on `studio.us.poly.ai` or `jupiter.polyai.app`
 
 ## Managing Languages
 
@@ -129,14 +131,14 @@ After adding or removing languages, reload the extension in `chrome://extensions
 
 ### Supported Languages
 
-Arabic, Chinese, Danish, Dutch, English, French, German, Greek, Hebrew, Hindi, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Serbian, Spanish, Swedish, Thai, Ukrainian, Vietnamese
+Arabic, Chinese, Croatian ![NEW](https://img.shields.io/badge/NEW-brightgreen), Danish, Dutch, English, French, German, Greek, Hebrew, Hindi, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Serbian, Spanish, Swedish, Thai, Ukrainian, Vietnamese
 
 ### Download Sizes
 
 | Tier | Languages | Size |
 |------|-----------|------|
 | Essential | es, fr, de, pt, it ↔ en | ~350 MB |
-| All 24 languages | Full set ↔ en | ~1.5 GB |
+| All 25 languages | Full set ↔ en | ~1.5 GB |
 
 ## How It Works
 
@@ -159,7 +161,7 @@ This means:
 ### Architecture
 
 ```
-Content Script (poly.ai page)
+Content Script (poly.ai / polyai.app page)
   ↓ chrome.runtime.sendMessage
 Background Service Worker
   ↓ chrome.runtime.sendMessage

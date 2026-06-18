@@ -237,6 +237,16 @@ const MODEL_REGISTRY = {
     "vocab": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/e182522d-4844-453c-81ba-7360522f7c1d.spm",
     "lex": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/32d8a39d-acdd-4511-926e-b106875ae125.bin",
     "model": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/ac5d5553-78cd-4b5a-846a-a51c07f148e3.bin"
+  },
+  "en_hr": {
+    "model": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/08947d77-90d5-40ef-a896-560e7cf3c0c7.bin",
+    "vocab": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/15b77cc4-84ff-47c2-b54c-6075910ef1ce.spm",
+    "lex": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/9d7acc73-dba2-4d5e-9e6b-3b58a6ef6a27.bin"
+  },
+  "hr_en": {
+    "model": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/5fac58c4-3e2f-4bd5-83ed-a79854690eb3.bin",
+    "lex": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/ac72b3bf-3886-4951-bc25-50814d071313.bin",
+    "vocab": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/28050743-d5bd-4407-99f5-8bee12db36fc.spm"
   }
 };
 
@@ -244,6 +254,7 @@ const BERGAMOT_LANG_MAP = {
   "ar": "ar",
   "zh": "zh-Hans",
   "da": "da",
+  "hr": "hr",
   "nl": "nl",
   "en": "en",
   "fr": "fr",

@@ -10,12 +10,13 @@ CDN="https://firefox-settings-attachments.cdn.mozilla.net"
  
 # ── Language definitions ──
  
-NON_EN_LANGS=(ar zh da nl fr de el he hi it ja ko no pl pt ro ru sr es sv th uk vi)
+NON_EN_LANGS=(ar zh hr da nl fr de el he hi it ja ko no pl pt ro ru sr es sv th uk vi)
  
 lang_name() {
   case "$1" in
-    ar) echo "Arabic"     ;; zh) echo "Chinese"    ;; da) echo "Danish"     ;;
-    nl) echo "Dutch"      ;; en) echo "English"    ;; fr) echo "French"     ;;
+    ar) echo "Arabic"     ;; zh) echo "Chinese"    ;; hr) echo "Croatian"   ;;
+    da) echo "Danish"     ;; nl) echo "Dutch"      ;; en) echo "English"    ;;
+    fr) echo "French"     ;;
     de) echo "German"     ;; el) echo "Greek"      ;; he) echo "Hebrew"     ;;
     hi) echo "Hindi"      ;; it) echo "Italian"    ;; ja) echo "Japanese"   ;;
     ko) echo "Korean"     ;; no) echo "Norwegian"  ;; pl) echo "Polish"     ;;
@@ -28,8 +29,9 @@ lang_name() {
  
 berg_code() {
   case "$1" in
-    ar) echo "ar"      ;; zh) echo "zh-Hans" ;; da) echo "da" ;;
-    nl) echo "nl"      ;; en) echo "en"      ;; fr) echo "fr" ;;
+    ar) echo "ar"      ;; zh) echo "zh-Hans" ;; hr) echo "hr" ;;
+    da) echo "da"      ;; nl) echo "nl"      ;; en) echo "en" ;;
+    fr) echo "fr"      ;;
     de) echo "de"      ;; el) echo "el"      ;; he) echo "he" ;;
     hi) echo "hi"      ;; it) echo "it"      ;; ja) echo "ja" ;;
     ko) echo "ko"      ;; no) echo "nb"      ;; pl) echo "pl" ;;
@@ -221,7 +223,7 @@ pick_languages() {
   done
  
   local total=${#available[@]}
-  local cols=4
+  local cols=3
   local rows=$(( (total + cols - 1) / cols ))
  
   local row col idx
