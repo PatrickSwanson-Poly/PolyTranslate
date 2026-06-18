@@ -110,23 +110,25 @@ In a Google Chrome browser, navigate to `chrome://extensions` (paste this into t
   <img src="screenshots/extension_setup_1.png" width="80%">
 </p>
 
-In the top-right corner, enable the **Developer mode** toggle
+In the top-right corner, enable the **Developer mode** toggle.
 
 <p align="center">
   <img src="screenshots/extension_setup_2.png" width="80%">
 </p>
 
-Under the Chrome logo on the top left, click the **Load unpacked** button and select your local `PolyTranslate` folder
+Under the Chrome logo on the top left, click the **Load unpacked** button and select your local `PolyTranslate` folder.
 
 <p align="center">
   <img src="screenshots/extension_setup_3.png" width="80%">
 </p>
 
-Navigate to any Agent Studio page via [studio.us.poly.ai](https://studio.us.poly.ai/) or [jupiter.polyai.app](https://jupiter.polyai.app/). The PolyTranslate icons will appear when reviewing call transcripts and chatting with the agent!
+You should now see `PolyTranslate` in your extensions list!
 
 <p align="center">
   <img src="screenshots/extension_setup_4.png" width="80%">
 </p>
+
+Simply open a call or test chat in Agent Studio to see PolyTranslate in action. PolyTranslate works on both [studio.us.poly.ai](https://studio.us.poly.ai/) and [jupiter.polyai.app](https://jupiter.polyai.app/) URLs.
 
 ## Managing Languages
 
