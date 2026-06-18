@@ -104,7 +104,7 @@ On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it c
 
 ### 3. Load the extension
 
-In a Google Chrome browser, navigate to [chrome://extensions](chrome://extensions)
+In a Google Chrome browser, navigate to `chrome://extensions` (paste this into the address bar).
 
 <p align="center">
   <img src="screenshots/extension_setup_1.png" width="80%">
