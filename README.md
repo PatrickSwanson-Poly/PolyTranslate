@@ -104,10 +104,29 @@ On macOS/Linux this creates a symlink at `/usr/local/bin/polyt`. On Windows it c
 
 ### 3. Load the extension
 
-1. In a Google Chrome browser, navigate to [chrome://extensions](chrome://extensions)
-2. In the top-right corner, enable the **Developer mode** toggle
-3. Under the Chrome logo on the left, click the **Load unpacked** button and select your local `PolyTranslate` folder
-4. Navigate to any Agent Studio page via [studio.us.poly.ai](https://studio.us.poly.ai/) or [jupiter.polyai.app](https://jupiter.polyai.app/). The PolyTranslate icons will appear when reviewing call transcripts and chatting with the agent!
+In a Google Chrome browser, navigate to [chrome://extensions](chrome://extensions)
+
+<p align="center">
+  <img src="screenshots/extension_setup_1.png" width="80%">
+</p>
+
+In the top-right corner, enable the **Developer mode** toggle
+
+<p align="center">
+  <img src="screenshots/extension_setup_2.png" width="80%">
+</p>
+
+Under the Chrome logo on the top left, click the **Load unpacked** button and select your local `PolyTranslate` folder
+
+<p align="center">
+  <img src="screenshots/extension_setup_3.png" width="80%">
+</p>
+
+Navigate to any Agent Studio page via [studio.us.poly.ai](https://studio.us.poly.ai/) or [jupiter.polyai.app](https://jupiter.polyai.app/). The PolyTranslate icons will appear when reviewing call transcripts and chatting with the agent!
+
+<p align="center">
+  <img src="screenshots/extension_setup_4.png" width="80%">
+</p>
 
 ## Managing Languages
 
