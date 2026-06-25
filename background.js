@@ -42,25 +42,70 @@ async function ensureOffscreen() {
     });
     if (contexts.length > 0) return;
 
-    await chrome.offscreen.createDocument({
-      url: "offscreen.html",
-      reasons: ["WORKERS"],
-      justification: "Run Bergamot WASM translation engine",
-    });
+    try {
+      await chrome.offscreen.createDocument({
+        url: "offscreen.html",
+        reasons: ["WORKERS"],
+        justification: "Run Bergamot WASM translation engine",
+      });
+    } catch (err) {
+      throw new Error(
+        `Could not start translation engine: ${err.message}. Reload the extension in chrome://extensions.`
+      );
+    }
   })();
 
   await offscreenPromise;
   offscreenPromise = null;
 }
 
+async function waitForOffscreenReady(maxAttempts = 20) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "bergamot-ping",
+      });
+      if (response?.ready) return;
+    } catch {
+      // Offscreen scripts may still be loading.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
+  }
+
+  throw new Error(
+    "Could not start translation engine. Refresh this page."
+  );
+}
+
+async function forwardToOffscreen(message) {
+  await ensureOffscreen();
+  await waitForOffscreenReady();
+
+  try {
+    return await chrome.runtime.sendMessage({
+      ...message,
+      type: "bergamot-translate",
+    });
+  } catch (err) {
+    throw new Error(
+      `Could not reach translation engine: ${err.message}. Refresh this page.`
+    );
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type !== "translate" || !sender.tab) return;
 
-  ensureOffscreen()
-    .then(() =>
-      chrome.runtime.sendMessage({ ...message, type: "bergamot-translate" })
-    )
-    .then(sendResponse)
+  forwardToOffscreen(message)
+    .then((response) => {
+      if (!response) {
+        sendResponse({
+          error: "Translation engine returned no response. Refresh this page.",
+        });
+        return;
+      }
+      sendResponse(response);
+    })
     .catch((err) => sendResponse({ error: err.message }));
 
   return true;
