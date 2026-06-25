@@ -16,25 +16,20 @@ async function translateBatch(texts, sourceLang, targetLang) {
     const msg = err?.message || String(err);
     if (msg.includes("Extension context invalidated")) {
       throw new Error(
-        "PolyTranslate was reloaded — refresh this page to continue"
+        `PolyTranslate was updated: ${err.message}. Refresh this page.`
       );
     }
-    if (msg.includes("Receiving end does not exist")) {
-      throw new Error(
-        "PolyTranslate is unavailable — refresh this page and try again"
-      );
-    }
-    throw new Error(`Could not reach PolyTranslate: ${msg}`);
+    throw new Error(
+      `Could not reach PolyTranslate: ${err.message}. Refresh this page.`
+    );
   }
 
   if (!response) {
-    throw new Error(
-      "PolyTranslate did not respond — refresh this page and try again"
-    );
+    throw new Error("Could not reach PolyTranslate. Refresh this page.");
   }
   if (response.error) throw new Error(response.error);
   if (!response.results) {
-    throw new Error("PolyTranslate returned an empty translation response");
+    throw new Error("Translation engine returned no response. Refresh this page.");
   }
   return response.results;
 }

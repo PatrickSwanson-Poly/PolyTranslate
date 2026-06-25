@@ -50,7 +50,7 @@ async function ensureOffscreen() {
       });
     } catch (err) {
       throw new Error(
-        `Could not start translation engine: ${err.message} — reload the extension in chrome://extensions`
+        `Could not start translation engine: ${err.message}. Reload the extension in chrome://extensions.`
       );
     }
   })();
@@ -73,7 +73,7 @@ async function waitForOffscreenReady(maxAttempts = 20) {
   }
 
   throw new Error(
-    "Translation engine did not start — reload this page and try again"
+    "Could not start translation engine. Refresh this page."
   );
 }
 
@@ -87,13 +87,9 @@ async function forwardToOffscreen(message) {
       type: "bergamot-translate",
     });
   } catch (err) {
-    const msg = err?.message || String(err);
-    if (msg.includes("Receiving end does not exist")) {
-      throw new Error(
-        "Translation engine unavailable — reload this page and try again"
-      );
-    }
-    throw new Error(`Could not reach translation engine: ${msg}`);
+    throw new Error(
+      `Could not reach translation engine: ${err.message}. Refresh this page.`
+    );
   }
 }
 
@@ -104,8 +100,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     .then((response) => {
       if (!response) {
         sendResponse({
-          error:
-            "Translation engine returned no response — reload this page and try again",
+          error: "Translation engine returned no response. Refresh this page.",
         });
         return;
       }

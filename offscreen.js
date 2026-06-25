@@ -26,12 +26,12 @@ function linkFallbackIntGemm(info) {
   );
 }
 
-async function fetchExtensionResource(url, label) {
+async function fetchExtensionResource(url) {
   try {
     return await fetch(url);
   } catch (err) {
     throw new Error(
-      `Failed to load ${label} (${url}) — reload the page; if this persists, reload the extension in chrome://extensions`
+      `Could not load translation engine files: ${err.message}. Reload the extension in chrome://extensions.`
     );
   }
 }
@@ -42,12 +42,11 @@ function initBergamot() {
 
   initPromise = (async () => {
     const wasmResponse = await fetchExtensionResource(
-      "bergamot-translator-worker.wasm",
-      "Bergamot WASM engine"
+      "bergamot-translator-worker.wasm"
     );
     if (!wasmResponse.ok) {
       throw new Error(
-        `Bergamot WASM engine missing (HTTP ${wasmResponse.status}) — reinstall PolyTranslate`
+        `Could not load translation engine: HTTP ${wasmResponse.status}. Re-install PolyTranslate.`
       );
     }
 
@@ -61,7 +60,7 @@ function initBergamot() {
           .catch((err) =>
             reject(
               new Error(
-                `Bergamot WASM engine failed to initialize: ${err.message}`
+                `Could not initialize translation engine: ${err.message}. Reload the extension in chrome://extensions.`
               )
             )
           );
@@ -78,7 +77,7 @@ function initBergamot() {
       script.onerror = () =>
         reject(
           new Error(
-            "Failed to load Bergamot WASM glue code — reinstall PolyTranslate"
+            "Could not load translation engine. Re-install PolyTranslate."
           )
         );
       document.head.appendChild(script);
@@ -92,10 +91,10 @@ function initBergamot() {
 
 async function loadLocalFile(pairKey, fileName) {
   const url = `models/${pairKey}/${fileName}`;
-  const response = await fetchExtensionResource(url, `model file ${fileName}`);
+  const response = await fetchExtensionResource(url);
   if (!response.ok) {
     throw new Error(
-      `Model file not found: ${url} — run "./setup.sh init" or "polyt add" to download models`
+      `Could not load language model: HTTP ${response.status}. Run "./setup.sh init" or "polyt add" in your local PolyTranslate folder.`
     );
   }
   return response.arrayBuffer();
@@ -106,9 +105,9 @@ async function loadManifest(pairKey) {
   let response;
   try {
     response = await fetch(url);
-  } catch {
+  } catch (err) {
     throw new Error(
-      `Could not read language models — run "./setup.sh init" or "polyt add" to download them`
+      `Could not load language models: ${err.message}. Run "./setup.sh init" or "polyt add" in your local PolyTranslate folder.`
     );
   }
   if (!response.ok) return null;
@@ -164,7 +163,7 @@ async function loadModel(from, to, key) {
   const manifest = await loadManifest(key);
   if (!manifest)
     throw new Error(
-      `No model installed for ${from} → ${to} — run "polyt add" to download it`
+      `No language model for ${from} → ${to}. Run "./setup.sh init" or "polyt add" in your local PolyTranslate folder.`
     );
 
   const buffers = {};
