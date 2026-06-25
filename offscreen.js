@@ -26,12 +26,30 @@ function linkFallbackIntGemm(info) {
   );
 }
 
+async function fetchExtensionResource(url, label) {
+  try {
+    return await fetch(url);
+  } catch (err) {
+    throw new Error(
+      `Failed to load ${label} (${url}) — reload the page; if this persists, reload the extension in chrome://extensions`
+    );
+  }
+}
+
 function initBergamot() {
   if (bergamotModule) return Promise.resolve(bergamotModule);
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    const wasmResponse = await fetch("bergamot-translator-worker.wasm");
+    const wasmResponse = await fetchExtensionResource(
+      "bergamot-translator-worker.wasm",
+      "Bergamot WASM engine"
+    );
+    if (!wasmResponse.ok) {
+      throw new Error(
+        `Bergamot WASM engine missing (HTTP ${wasmResponse.status}) — reinstall PolyTranslate`
+      );
+    }
 
     return new Promise((resolve, reject) => {
       Module.instantiateWasm = (info, accept) => {
@@ -40,7 +58,13 @@ function initBergamot() {
           wasm_gemm: linkFallbackIntGemm(info),
         })
           .then(({ instance }) => accept(instance))
-          .catch(reject);
+          .catch((err) =>
+            reject(
+              new Error(
+                `Bergamot WASM engine failed to initialize: ${err.message}`
+              )
+            )
+          );
         return {};
       };
       Module.onRuntimeInitialized = () => {
@@ -52,7 +76,11 @@ function initBergamot() {
       const script = document.createElement("script");
       script.src = "bergamot-translator-worker.js";
       script.onerror = () =>
-        reject(new Error("Failed to load WASM glue code"));
+        reject(
+          new Error(
+            "Failed to load Bergamot WASM glue code — reinstall PolyTranslate"
+          )
+        );
       document.head.appendChild(script);
     });
   })();
@@ -64,17 +92,25 @@ function initBergamot() {
 
 async function loadLocalFile(pairKey, fileName) {
   const url = `models/${pairKey}/${fileName}`;
-  const response = await fetch(url);
-  if (!response.ok)
+  const response = await fetchExtensionResource(url, `model file ${fileName}`);
+  if (!response.ok) {
     throw new Error(
-      `Model file not found: ${url} — run "polyt add" to download models`
+      `Model file not found: ${url} — run "./setup.sh init" or "polyt add" to download models`
     );
+  }
   return response.arrayBuffer();
 }
 
 async function loadManifest(pairKey) {
   const url = `models/${pairKey}/manifest.json`;
-  const response = await fetch(url);
+  let response;
+  try {
+    response = await fetch(url);
+  } catch {
+    throw new Error(
+      `Could not read language models — run "./setup.sh init" or "polyt add" to download them`
+    );
+  }
   if (!response.ok) return null;
   return response.json();
 }
@@ -228,6 +264,11 @@ async function translateTexts(texts, sourceLang, targetLang) {
 // ── Message handler ──
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "bergamot-ping") {
+    sendResponse({ ready: true });
+    return;
+  }
+
   if (message.type !== "bergamot-translate") return;
 
   translateTexts(message.texts, message.sourceLang, message.targetLang)

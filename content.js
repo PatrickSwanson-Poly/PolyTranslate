@@ -21,13 +21,26 @@
     return `<img src="${TRANSCRIPT_ICON_OK}" width="${size}" height="${size}" alt="">`;
   }
 
-  function setErrorState(on) {
+  let lastTranslateError = null;
+
+  function setErrorState(on, message) {
+    if (on && message) lastTranslateError = message;
+    else if (!on) lastTranslateError = null;
+
     document.querySelectorAll(".pt-translate-toggle img").forEach((img) => {
       img.src = on ? LOGO_ERR : TRANSCRIPT_ICON_OK;
     });
     document.querySelectorAll(".pt-input-circle-btn img").forEach((img) => {
       img.src = on ? LOGO_ERR : LOGO_OK;
     });
+
+    if (on && lastTranslateError) {
+      document.querySelectorAll(".pt-translate-toggle").forEach((btn) => {
+        btn.setAttribute("aria-label", lastTranslateError);
+        const label = btn.querySelector(".pt-translate-tooltip-label");
+        if (label) label.textContent = lastTranslateError;
+      });
+    }
   }
 
   // ── Language settings (persisted to chrome.storage) ──
@@ -602,7 +615,7 @@
         setErrorState(false);
       } catch (err) {
         console.error("[PolyTranslate] Live translate failed:", err);
-        setErrorState(true);
+        setErrorState(true, err.message);
       }
     }, 300);
   }
@@ -854,7 +867,7 @@
       setErrorState(false);
     } catch (err) {
       console.error("[PolyTranslate] Conversation translation failed:", err);
-      setErrorState(true);
+      setErrorState(true, err.message);
     }
   }
 
@@ -1037,7 +1050,7 @@
       setErrorState(false);
     } catch (err) {
       console.error("[PolyTranslate] Input translation failed:", err);
-      setErrorState(true);
+      setErrorState(true, err.message);
     } finally {
       resetInputBtn();
     }
