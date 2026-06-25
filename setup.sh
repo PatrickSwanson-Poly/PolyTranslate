@@ -82,7 +82,9 @@ installed_langs() {
       langs+=("$lang")
     fi
   done
-  echo "${langs[@]}"
+  if ((${#langs[@]})); then
+    echo "${langs[@]}"
+  fi
 }
  
 write_installed_languages() {
@@ -98,6 +100,23 @@ write_installed_languages() {
     json=$(IFS=,; echo "[${langs[*]}]")
   fi
   echo "$json" > "$SCRIPT_DIR/installed-languages.json"
+}
+
+fetch_registry() {
+  echo ""
+  echo "  Fetching model registry..."
+  if ! REGISTRY_DATA=$(curl -sf --max-time 60 "$REGISTRY_URL"); then
+    echo ""
+    echo "  $(red "✗") Could not fetch model registry."
+    echo "  Check your network connection, VPN, or firewall."
+    echo "  URL: $REGISTRY_URL"
+    exit 1
+  fi
+  if [[ -z "$REGISTRY_DATA" ]]; then
+    echo ""
+    echo "  $(red "✗") Model registry returned an empty response."
+    exit 1
+  fi
 }
  
 download_pair() {
@@ -327,9 +346,7 @@ cmd_init() {
     exit 0
   fi
  
-  echo ""
-  echo "  Fetching model registry..."
-  REGISTRY_DATA=$(curl -sf "$REGISTRY_URL")
+  fetch_registry
  
   local success=0 fail=0
   for lang in "${SELECTED_LANGS[@]}"; do
@@ -381,9 +398,7 @@ cmd_add() {
     exit 0
   fi
  
-  echo ""
-  echo "  Fetching model registry..."
-  REGISTRY_DATA=$(curl -sf "$REGISTRY_URL")
+  fetch_registry
  
   local success=0 fail=0 skipped=0
   for lang in "${SELECTED_LANGS[@]}"; do
@@ -429,9 +444,7 @@ cmd_update() {
     exit 0
   fi
  
-  echo ""
-  echo "  Fetching model registry..."
-  REGISTRY_DATA=$(curl -sf "$REGISTRY_URL")
+  fetch_registry
  
   for lang in $existing; do
     rm -f "$MODELS_DIR/${lang}_en"/*.bin "$MODELS_DIR/${lang}_en"/*.spm 2>/dev/null
