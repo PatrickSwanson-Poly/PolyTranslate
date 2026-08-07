@@ -212,6 +212,27 @@
     return Boolean(btn.closest('[data-test-id="conversation-review-header"]'));
   }
 
+  // The full-page conversation review header: a title block ("Request for
+  // transportation ...") next to an icon cluster (Notes, diagnosis, copy
+  // link, etc). The translate button should always live at the start of
+  // that icon cluster, next to the title, regardless of whether the summary
+  // side panel is open or closed - this anchor doesn't depend on the
+  // transcript layout at all, so it can't be knocked off course by it.
+  function getConversationHeaderIconCluster(panel) {
+    const scope = panel || document;
+    const title = scope.querySelector('[data-test-id="conversation-call-header"]');
+    const titleBlock = title?.parentElement;
+    const headerRow = titleBlock?.parentElement;
+    if (!headerRow) return null;
+    return [...headerRow.children].find((child) => child !== titleBlock) || null;
+  }
+
+  function findConversationHeaderAnchor(panel) {
+    const iconCluster = getConversationHeaderIconCluster(panel);
+    if (!iconCluster) return null;
+    return { type: "bar", el: iconCluster, insertBefore: iconCluster.firstChild };
+  }
+
   function findNotesButton(panel) {
     const scope = panel || document;
     return (
@@ -267,6 +288,18 @@
     return gap >= -30 && gap < 500;
   }
 
+  // Reject bars that are position:absolute and don't lay out children with
+  // flex - those are typically a box sized to fit exactly one pre-existing
+  // icon button (e.g. the summary panel's collapsed-state expand toggle).
+  // Dropping our button in there doesn't make room for it; it just overlaps
+  // the existing control. A flex container handles the extra child fine, and
+  // an in-flow (non-absolute) container just grows to fit it.
+  function isSafeActionBar(el) {
+    const style = getComputedStyle(el);
+    if (style.display.includes("flex")) return true;
+    return style.position !== "absolute" && style.position !== "fixed";
+  }
+
   function getNotesToolbarAnchor(scope, panel) {
     const notesBtn = findNotesButton(scope);
     if (!notesBtn || isInPanelHeader(notesBtn, panel)) return null;
@@ -300,6 +333,9 @@
     const turnTop = firstTurn.getBoundingClientRect().top;
     const scope = panel || getTranscriptPanel(firstTurn) || document;
 
+    const headerAnchor = findConversationHeaderAnchor(scope);
+    if (headerAnchor) return headerAnchor;
+
     const notesAnchor = getNotesToolbarAnchor(scope, panel);
     if (notesAnchor) return notesAnchor;
 
@@ -321,6 +357,7 @@
       let bestBar = null;
       let bestButtons = [];
       for (const [bar, btns] of byParent) {
+        if (!isSafeActionBar(bar)) continue;
         if (btns.length > bestButtons.length) {
           bestBar = bar;
           bestButtons = btns;
@@ -341,7 +378,10 @@
       while (prev) {
         const gap = turnTop - prev.getBoundingClientRect().bottom;
         if (gap > 400) break;
-        if (prev.querySelector("button") || getComputedStyle(prev).display.includes("flex")) {
+        if (
+          isSafeActionBar(prev) &&
+          (prev.querySelector("button") || getComputedStyle(prev).display.includes("flex"))
+        ) {
           return { type: "bar", el: prev };
         }
         prev = prev.previousElementSibling;
@@ -366,6 +406,10 @@
 
     const root = panel || getTranscriptPanel(firstTurn);
     if (root && !root.contains(split)) return false;
+
+    const headerIconCluster = getConversationHeaderIconCluster(root);
+    if (headerIconCluster?.contains(split)) return true;
+
     if (isInPanelHeader(split, root)) return false;
 
     if (isTranslateNotesToolbar(split, panel || root)) return true;
@@ -705,9 +749,17 @@
     if (!btn) return false;
     const testId = btn.getAttribute("data-test-id") || "";
     if (testId.startsWith("function-call-")) return false;
-    return [...btn.querySelectorAll("p")].some((p) =>
-      /^(agent|caller)$/i.test(p.textContent.trim())
+
+    const hasLabel = [...btn.querySelectorAll("p, span")].some((el) =>
+      /^(agent|caller)$/i.test(el.textContent.trim())
     );
+    if (hasLabel) return true;
+
+    // Consecutive turns from the same speaker don't repeat the Agent/Caller
+    // label - only the first bubble in a run gets one. Every real turn
+    // (labeled or not) is still wrapped in a turn-idx-N container though, so
+    // fall back to that to catch unlabeled continuation turns.
+    return Boolean(btn.closest('[data-test-id^="turn-idx-"]'));
   }
 
   function isAgentCallerUtteranceElement(el) {

@@ -4,6 +4,8 @@ A privacy-first Chrome extension that adds offline, inline translation to PolyAI
 
 ## Features
 
+> **Note:** Screenshots below are outdated. To be updated soon.
+
 ### Conversation Review Translation
 Translate completed conversation transcripts with side-by-side original and translated text. Click the **PolyTranslate** button next to the Notes button in the call review panel. The button turns gray when translation is active, and the language pair label stays visible. Toggle off to restore originals.
 
