@@ -1,5 +1,11 @@
 # <img src="icons/icon48.png" alt="" width="32" /> PolyTranslate
 
+> ⚠️ **This project is no longer supported.** PolyTranslate has been succeeded by **PolyParrot**. Please install it instead: **[github.com/PolyAI-LDN/poly-parrot](https://github.com/PolyAI-LDN/poly-parrot)**
+>
+> Agent Studio UI changes are no longer being tracked here, so PolyTranslate will progressively break as the UI evolves. Switch to PolyParrot to stay compatible.
+>
+> The instructions below are kept for reference only and will not receive further updates.
+
 A privacy-first Chrome extension that adds offline, inline translation to PolyAI Agent Studio and Jupiter (`*.poly.ai` and `*.polyai.app`). All translation happens locally on your machine using [Bergamot](https://github.com/browsermt/bergamot-translator) — the same neural translation engine that powers Firefox Translate. No text ever leaves your device.
 
 ## Features
